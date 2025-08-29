@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 
+const formatCLP = (value) => {
+  return `$${Math.round(value).toLocaleString('es-CL')}`;
+};
+
 export default function OrderReviewModal({ order, onSave, onClose }) {
   const [items, setItems] = useState(order.items.map(item => ({
     ...item,
