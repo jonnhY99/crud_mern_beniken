@@ -7,21 +7,48 @@ const HeroSection = () => {
     <section id="inicio" className="relative min-h-screen flex items-center overflow-hidden -mt-24">
       {/* Background Video */}
       <div className="absolute inset-0 z-0">
+        {/* Mobile Video - Proper Aspect Ratio */}
+        <div className="block sm:hidden absolute inset-0 w-full h-full">
+          <div 
+            className="w-full h-full bg-cover bg-center bg-no-repeat relative"
+            style={{
+              aspectRatio: '16/9'
+            }}
+          >
+            <iframe
+              src="https://player.cloudinary.com/embed/?cloud_name=dyeotzjo8&public_id=kling_20250828_Image_to_Video__3129_0_kqksco&profile=carne2"
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+              style={{ 
+                width: 'max(100vw, 177.78vh)',
+                height: 'max(100vh, 56.25vw)',
+                border: 'none',
+                pointerEvents: 'none'
+              }}
+              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+              allowFullScreen
+              frameBorder="0"
+              title="Carnicería Beniken - Video móvil"
+            />
+          </div>
+        </div>
+        
+        {/* Desktop/Tablet Video */}
         <iframe
           src="https://player.cloudinary.com/embed/?cloud_name=dyeotzjo8&public_id=kling_20250828_Image_to_Video__3129_0_kqksco&profile=carne2"
-          width="640"
-          height="360"
-          className="w-full h-full object-cover"
+          className="hidden sm:block w-full h-full"
           style={{ 
             minHeight: '100vh',
+            minWidth: '100vw',
             border: 'none',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            objectFit: 'cover'
           }}
           allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
           allowFullScreen
           frameBorder="0"
           title="Carnicería Beniken - Video promocional"
         />
+        
         {/* Dark overlay for better text readability */}
         <div className="absolute inset-0 bg-black/40 z-5"></div>
         {/* Overlay to prevent interactions */}
