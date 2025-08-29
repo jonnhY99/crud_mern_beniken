@@ -19,7 +19,7 @@ const Categories = () => {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden group">
             <div className="relative h-96">
               <img
-                src="image/carne de vacuno.png"
+                src="image/carne_de_vacuno.png"
                 alt="Cortes de Vacuno"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
@@ -51,7 +51,7 @@ const Categories = () => {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden group">
             <div className="relative h-96">
               <img
-                src="image/carne de cerdo.png"
+                src="image/carne_de_cerdo.png"
                 alt="Cortes de Cerdo"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
