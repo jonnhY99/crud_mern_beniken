@@ -1,32 +1,24 @@
 {
-    "name": "Carnes Beniken",
-    "short_name": "Beniken",
-    "description": "Plataforma web para pedidos online de Carnes Beniken.",
-    "start_url": "/",
-    "scope": "/",
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#8B0000",
-    "orientation": "portrait",
-    "icons": [
-      {
-<<<<<<< HEAD
-        "src": "/public/favicon_io/android-chrome-512x512.png",
-=======
-        "src": "/favicon_io/android-chrome-512x512.png",
->>>>>>> 36ab08a (nuevos cambios)
-        "sizes": "192x192",
-        "type": "image/png"
-      },
-      {
-<<<<<<< HEAD
-        "src": "/public/favicon_io/android-chrome-512x512.png",
-=======
-        "src": "/favicon_io/android-chrome-512x512.png",
->>>>>>> 36ab08a (nuevos cambios)
-        "sizes": "512x512",
-        "type": "image/png"
+        "name": "Carnes Beniken",
+        "short_name": "Beniken",
+        "description": "Plataforma web para pedidos online de Carnes Beniken.",
+        "start_url": "/",
+        "scope": "/",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#8B0000",
+        "orientation": "portrait",
+        "icons": [
+          {
+            "src": "/favicon_io/android-chrome-512x512.png",
+            "sizes": "192x192",
+            "type": "image/png"
+          },
+          {
+            "src": "/favicon_io/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+          }
+        ]
       }
-    ]
-  }
-  
+      
