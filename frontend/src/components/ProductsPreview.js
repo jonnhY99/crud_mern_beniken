@@ -2,6 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 
+const formatCLP = (value) => {
+  return `$${Math.round(value).toLocaleString('es-CL')}`;
+};
+
 const ProductsPreview = ({ products = [] }) => {
   // Mostrar solo los primeros 3 productos
   const featuredProducts = products.slice(0, 3);

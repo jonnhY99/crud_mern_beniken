@@ -140,7 +140,7 @@ function OrderCard({ order, onUpdate, onDelete }) {
           <strong>Retiro:</strong> {order.pickupTime}
         </div>
         <div>
-          <strong>Total:</strong> {toCLP(total)}
+          <strong>Total:</strong> {formatCLP(total)}
         </div>
         <div className="flex items-center gap-2">
           <strong>Pago:</strong>
