@@ -129,47 +129,50 @@ const Usuarios = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <h2 className="text-2xl font-bold mb-4">Gestión de Usuarios</h2>
+    <div className="p-3 sm:p-6">
+      <h2 className="text-xl sm:text-2xl font-bold mb-4">Gestión de Usuarios</h2>
 
+      {/* Botón Crear Usuario */}
       <button
         onClick={handleCrear}
-        className="mb-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+        className="mb-4 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm sm:text-base touch-manipulation"
       >
         Crear Usuario
       </button>
 
-      {/* Tabla Usuarios Normales */}
-      <h3 className="text-xl font-bold mt-6 mb-2">Usuarios</h3>
+      {/* Tabla Usuarios */}
+      <h3 className="text-lg sm:text-xl font-bold mb-2">Todos los Usuarios</h3>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow">
+        <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow text-xs sm:text-sm">
           <thead>
             <tr className="bg-gray-200 text-left">
-              <th className="py-2 px-4 border-b">Nombre</th>
-              <th className="py-2 px-4 border-b">Email</th>
-              <th className="py-2 px-4 border-b">Rol</th>
-              <th className="py-2 px-4 border-b">Acciones</th>
+              <th className="py-1 sm:py-2 px-2 sm:px-4 border-b">Nombre</th>
+              <th className="py-1 sm:py-2 px-2 sm:px-4 border-b hidden sm:table-cell">Email</th>
+              <th className="py-1 sm:py-2 px-2 sm:px-4 border-b">Rol</th>
+              <th className="py-1 sm:py-2 px-2 sm:px-4 border-b">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {(usuarios || []).map((usuario) => (
               <tr key={usuario._id} className="hover:bg-gray-100">
-                <td className="py-2 px-4 border-b">{usuario.name}</td>
-                <td className="py-2 px-4 border-b">{usuario.email}</td>
-                <td className="py-2 px-4 border-b">{usuario.role}</td>
-                <td className="py-2 px-4 border-b space-x-2">
-                  <button
-                    onClick={() => handleEditar(usuario)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleEliminar(usuario._id)}
-                    className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                  >
-                    Eliminar
-                  </button>
+                <td className="py-1 sm:py-2 px-2 sm:px-4 border-b truncate max-w-24 sm:max-w-none">{usuario.name}</td>
+                <td className="py-1 sm:py-2 px-2 sm:px-4 border-b hidden sm:table-cell truncate">{usuario.email}</td>
+                <td className="py-1 sm:py-2 px-2 sm:px-4 border-b">{usuario.role}</td>
+                <td className="py-1 sm:py-2 px-2 sm:px-4 border-b">
+                  <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                    <button
+                      onClick={() => handleEditar(usuario)}
+                      className="px-2 sm:px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm touch-manipulation"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleEliminar(usuario._id)}
+                      className="px-2 sm:px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs sm:text-sm touch-manipulation"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -178,34 +181,36 @@ const Usuarios = () => {
       </div>
 
       {/* Tabla Usuarios Frecuentes */}
-      <h3 className="text-xl font-bold mt-6 mb-2">Usuarios Frecuentes</h3>
+      <h3 className="text-lg sm:text-xl font-bold mt-6 mb-2">Usuarios Frecuentes</h3>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow">
+        <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow text-xs sm:text-sm">
           <thead>
             <tr className="bg-gray-200 text-left">
-              <th className="py-2 px-4 border-b">Nombre</th>
-              <th className="py-2 px-4 border-b">Email</th>
-              <th className="py-2 px-4 border-b">Acciones</th>
+              <th className="py-1 sm:py-2 px-2 sm:px-4 border-b">Nombre</th>
+              <th className="py-1 sm:py-2 px-2 sm:px-4 border-b hidden sm:table-cell">Email</th>
+              <th className="py-1 sm:py-2 px-2 sm:px-4 border-b">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {(frecuentes || []).map((usuario) => (
               <tr key={usuario._id} className="hover:bg-gray-100">
-                <td className="py-2 px-4 border-b">{usuario.name}</td>
-                <td className="py-2 px-4 border-b">{usuario.email}</td>
-                <td className="py-2 px-4 border-b space-x-2">
-                  <button
-                    onClick={() => handleEditar(usuario)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleEliminar(usuario._id)}
-                    className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                  >
-                    Eliminar
-                  </button>
+                <td className="py-1 sm:py-2 px-2 sm:px-4 border-b truncate max-w-24 sm:max-w-none">{usuario.name}</td>
+                <td className="py-1 sm:py-2 px-2 sm:px-4 border-b hidden sm:table-cell truncate">{usuario.email}</td>
+                <td className="py-1 sm:py-2 px-2 sm:px-4 border-b">
+                  <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                    <button
+                      onClick={() => handleEditar(usuario)}
+                      className="px-2 sm:px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm touch-manipulation"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleEliminar(usuario._id)}
+                      className="px-2 sm:px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs sm:text-sm touch-manipulation"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -213,10 +218,10 @@ const Usuarios = () => {
         </table>
       </div>
 
-      {/* Modal Crear/Editar */}
+      {/* Modal Crear/Editar - Mobile Responsive */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-md sm:w-96">
             <h3 className="text-xl font-bold mb-4">
               {editUser ? "Editar Usuario" : "Crear Usuario"}
             </h3>

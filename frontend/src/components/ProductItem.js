@@ -57,8 +57,8 @@ const ProductItem = ({ product, onAddToCart, onEditProduct }) => {
         <span className="text-gray-500 text-xs sm:text-sm">Stock: {Math.round(product.stock || 0)}</span>
       </div>
 
-      {/* Quantity selector and estimated price - Mobile optimized */}
-      <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-3">
+      {/* Quantity selector and estimated price - Improved spacing */}
+      <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
         <div className="flex-1">
           <label className="text-xs text-gray-600 mb-1 block">Cantidad ({product.unit})</label>
           <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
@@ -92,12 +92,14 @@ const ProductItem = ({ product, onAddToCart, onEditProduct }) => {
           </div>
         </div>
 
-        {/* Estimated price display */}
-        <div className="flex-1 sm:flex-initial">
+        {/* Estimated price display - Better spacing */}
+        <div className="flex-1 sm:flex-initial sm:min-w-[120px]">
           <label className="text-xs text-gray-600 mb-1 block">Precio estimado</label>
-          <span className="text-base sm:text-lg font-bold text-green-600 block">
-            {formatCLP(estimatedPrice)}
-          </span>
+          <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+            <span className="text-base sm:text-lg font-bold text-green-700 block text-center sm:text-left">
+              {formatCLP(estimatedPrice)}
+            </span>
+          </div>
         </div>
       </div>
 

@@ -3,12 +3,7 @@ import OrderReviewModal from "./OrderReviewModal"; // 👈 Importar modal
 import QRScanner from "./QRScanner"; // 👈 Importar escáner QR
 import { confirmOrderWeights, payOrder } from "../api/orders"; // 👈 Importar API function
 
-const toCLP = (n) =>
-  (n ?? 0).toLocaleString("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  });
+const toCLP = (n) => `$${Math.round(n ?? 0)}`;
 
 function norm(s) {
   return String(s || "").toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
@@ -188,8 +183,8 @@ function OrderCard({ order, onUpdate, onDelete }) {
           <div className="text-sm">
             <div className="font-semibold text-blue-800 mb-1">📄 Comprobante de Transferencia</div>
             <div className="space-y-1 text-blue-700">
-              <div><strong>Subido:</strong> {new Date(order.receiptData.uploadedAt).toLocaleString()}</div>
-              <div><strong>Monto reportado:</strong> ${order.receiptData.reportedAmount?.toLocaleString('es-CL')}</div>
+              <div><strong>Subido:</strong> {new Date(order.receiptData.uploadedAt).toLocaleDateString('es-CL')}</div>
+              <div><strong>Monto reportado:</strong> ${Math.round(order.receiptData.reportedAmount || 0)}</div>
               <div><strong>Estado:</strong> 
                 <span className={`ml-1 px-2 py-1 rounded text-xs ${
                   order.receiptData.validationStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :

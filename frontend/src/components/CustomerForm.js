@@ -298,7 +298,7 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
       {!isDeliveryAvailable && totalAmount > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
           <p className="text-yellow-700 text-sm">
-            💡 <strong>¡Tip!</strong> Agrega ${(100000 - totalAmount).toLocaleString('es-CL')} más a tu compra para habilitar el despacho a domicilio.
+            💡 <strong>¡Tip!</strong> Agrega ${Math.round(100000 - totalAmount)} más a tu compra para habilitar el despacho a domicilio.
           </p>
         </div>
       )}

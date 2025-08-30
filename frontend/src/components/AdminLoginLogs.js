@@ -130,91 +130,125 @@ export default function AdminLoginLogs() {
   const goNext = () => page < meta.pages && fetchLogs(page + 1);
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Historial de Inicios de Sesión</h2>
+    <div className="p-4 sm:p-6">
+      <h2 className="text-xl sm:text-2xl font-bold mb-4">Logs de Inicio de Sesión</h2>
 
-      {/* Filtros */}
-      <div className="bg-white rounded-lg shadow p-4 mb-4 grid grid-cols-1 md:grid-cols-6 gap-3">
-        <input
-          className="border rounded p-2 col-span-2"
-          placeholder="Buscar nombre, email, IP..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <select
-          className="border rounded p-2"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-        >
-          {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-        </select>
-        <input type="date" className="border rounded p-2" value={from} onChange={e=>setFrom(e.target.value)} />
-        <input type="date" className="border rounded p-2" value={to}   onChange={e=>setTo(e.target.value)} />
-        <div className="flex gap-2">
-          <button onClick={onApplyFilters} className="bg-red-700 text-white px-3 rounded hover:bg-red-800">Aplicar</button>
-          <button onClick={onClearFilters} className="bg-gray-200 px-3 rounded hover:bg-gray-300">Limpiar</button>
+      {/* Filtros - Mobile Responsive */}
+      <div className="bg-gray-100 p-3 sm:p-4 rounded mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <input
+            type="text"
+            placeholder="Buscar por nombre/email"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border rounded px-3 py-2 text-sm sm:text-base"
+          />
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="border rounded px-3 py-2 text-sm sm:text-base"
+          >
+            {ROLES.map(r => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
+          </select>
+          <input
+            type="date"
+            placeholder="Desde"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="border rounded px-3 py-2 text-sm sm:text-base"
+          />
+          <input
+            type="date"
+            placeholder="Hasta"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="border rounded px-3 py-2 text-sm sm:text-base"
+          />
         </div>
-
-        <div className="flex items-center gap-2">
-          <label className="text-sm">Orden:</label>
-          <select className="border rounded p-2" value={sort} onChange={(e)=>setSort(e.target.value)}>
-            <option value="desc">Más nuevos</option>
+        <div className="flex flex-wrap gap-2 mt-3 sm:mt-4">
+          <button
+            onClick={onApplyFilters}
+            className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-blue-700 text-sm sm:text-base touch-manipulation"
+          >
+            Aplicar Filtros
+          </button>
+          <button
+            onClick={onClearFilters}
+            className="bg-gray-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-gray-700 text-sm sm:text-base touch-manipulation"
+          >
+            Limpiar
+          </button>
+          <select
+            value={limit}
+            onChange={(e) => setLimit(Number(e.target.value))}
+            className="border rounded px-3 py-2 text-sm sm:text-base"
+          >
+            <option value={10}>10 por página</option>
+            <option value={20}>20 por página</option>
+            <option value={50}>50 por página</option>
+          </select>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="border rounded px-3 py-2 text-sm sm:text-base"
+          >
+            <option value="desc">Más recientes</option>
             <option value="asc">Más antiguos</option>
           </select>
-          <label className="text-sm">Por página:</label>
-          <select className="border rounded p-2" value={limit} onChange={(e)=>setLimit(Number(e.target.value))}>
-            {[10,20,50,100].map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
         </div>
       </div>
 
-      {/* Acciones masivas */}
-      <div className="bg-white rounded-lg shadow p-4 mb-2 flex flex-wrap gap-2">
-        <button onClick={()=>fetchLogs(page)} className="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Actualizar</button>
-        <button disabled={!selected.size} onClick={deleteSelected} className={`px-3 py-1 rounded ${selected.size ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
-          Eliminar seleccionados ({selected.size})
-        </button>
-        <button onClick={deleteBefore} className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600">Eliminar antes de fecha…</button>
-        <button onClick={deleteRange}  className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600">Eliminar por rango…</button>
-        <button onClick={deleteAll}    className="bg-black text-white px-3 py-1 rounded hover:bg-gray-800">Eliminar TODO</button>
-
-        <div className="ml-auto text-sm text-gray-600 self-center">
-          Total: {meta.total.toLocaleString('es-CL')}
+      {/* Acciones masivas - Mobile Responsive */}
+      <div className="bg-white rounded-lg shadow p-3 sm:p-4 mb-2">
+        <div className="flex flex-wrap gap-2 mb-2 sm:mb-0">
+          <button onClick={()=>fetchLogs(page)} className="bg-gray-200 px-2 sm:px-3 py-1 rounded hover:bg-gray-300 text-xs sm:text-sm touch-manipulation">Actualizar</button>
+          <button disabled={!selected.size} onClick={deleteSelected} className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm touch-manipulation ${selected.size ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
+            Eliminar ({selected.size})
+          </button>
+          <button onClick={deleteBefore} className="bg-orange-500 text-white px-2 sm:px-3 py-1 rounded hover:bg-orange-600 text-xs sm:text-sm touch-manipulation">Por fecha…</button>
+          <button onClick={deleteRange}  className="bg-orange-500 text-white px-2 sm:px-3 py-1 rounded hover:bg-orange-600 text-xs sm:text-sm touch-manipulation">Por rango…</button>
+          <button onClick={deleteAll}    className="bg-black text-white px-2 sm:px-3 py-1 rounded hover:bg-gray-800 text-xs sm:text-sm touch-manipulation">Eliminar TODO</button>
+        </div>
+        <div className="text-xs sm:text-sm text-gray-600 mt-2 sm:mt-0">
+          Total: {meta.total}
         </div>
       </div>
 
-      {/* Tabla */}
+      {/* Tabla - Mobile Responsive */}
       <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <table className="min-w-full">
+        <table className="min-w-full text-xs sm:text-sm">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-2 text-left"><input type="checkbox" checked={allSelected} onChange={toggleAll} /></th>
-              <th className="p-2 text-left">Usuario</th>
-              <th className="p-2 text-left">Email</th>
-              <th className="p-2 text-left">Rol</th>
-              <th className="p-2 text-left">IP</th>
-              <th className="p-2 text-left">Fecha</th>
-              <th className="p-2 text-left">Acciones</th>
+              <th className="p-1 sm:p-2 text-left"><input type="checkbox" checked={allSelected} onChange={toggleAll} className="touch-manipulation" /></th>
+              <th className="p-1 sm:p-2 text-left">Usuario</th>
+              <th className="p-1 sm:p-2 text-left hidden sm:table-cell">Email</th>
+              <th className="p-1 sm:p-2 text-left">Rol</th>
+              <th className="p-1 sm:p-2 text-left hidden md:table-cell">IP</th>
+              <th className="p-1 sm:p-2 text-left">Fecha</th>
+              <th className="p-1 sm:p-2 text-left">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {items.map(row => (
               <tr key={row._id} className="border-t">
-                <td className="p-2">
+                <td className="p-1 sm:p-2">
                   <input
                     type="checkbox"
                     checked={selected.has(row._id)}
                     onChange={() => toggleRow(row._id)}
+                    className="touch-manipulation"
                   />
                 </td>
-                <td className="p-2">{row.name}</td>
-                <td className="p-2">{row.email}</td>
-                <td className="p-2">{row.role}</td>
-                <td className="p-2">{row.ip || '-'}</td>
-                <td className="p-2">{formatDate(row.createdAt)}</td>
-                <td className="p-2">
+                <td className="p-1 sm:p-2 truncate max-w-24 sm:max-w-none">{row.name}</td>
+                <td className="p-1 sm:p-2 hidden sm:table-cell truncate">{row.email}</td>
+                <td className="p-1 sm:p-2">{row.role}</td>
+                <td className="p-1 sm:p-2 hidden md:table-cell">{row.ip || '-'}</td>
+                <td className="p-1 sm:p-2 text-xs sm:text-sm">{formatDate(row.createdAt)}</td>
+                <td className="p-1 sm:p-2">
                   <button
-                    className="text-red-600 hover:underline"
+                    className="text-red-600 hover:underline text-xs sm:text-sm touch-manipulation"
                     onClick={async () => {
                       if (!window.confirm('¿Eliminar este log?')) return;
                       await apiFetch(`/api/logs/${row._id}`, { method: 'DELETE' });

@@ -48,7 +48,7 @@ const AdminOrderCard = ({ order, onUpdateStatus }) => {
         <ul className="list-disc list-inside text-gray-600">
           {order.items?.map((item, index) => (
             <li key={index}>
-              {item.name} - {item.quantity} {item.unit} (${Number(item.price).toLocaleString('es-CL')} c/u)
+              {item.name} - {item.quantity} {item.unit} (${Math.round(Number(item.price))} c/u)
             </li>
           ))}
         </ul>
@@ -57,7 +57,7 @@ const AdminOrderCard = ({ order, onUpdateStatus }) => {
       {/* Total y cambio de estado */}
       <div className="flex justify-between items-center border-t border-gray-200 pt-4">
         <span className="text-xl font-bold text-gray-800">
-          Total: ${Number(order.totalCLP || 0).toLocaleString('es-CL')}
+          Total: ${Math.round(Number(order.totalCLP || 0))}
         </span>
         <select
           value={order.status}

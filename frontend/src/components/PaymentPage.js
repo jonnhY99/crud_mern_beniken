@@ -69,7 +69,7 @@ const PaymentPage = ({ onPaymentComplete }) => {
           <p className="text-center text-lg text-gray-700">
             Total a pagar:{' '}
             <span className="font-bold text-red-700 text-xl">
-              ${Math.round(order.totalCLP).toLocaleString('es-CL')}
+              ${Math.round(order.totalCLP)}
             </span>
           </p>
         </div>

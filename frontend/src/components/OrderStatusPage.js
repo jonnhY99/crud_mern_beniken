@@ -140,7 +140,7 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
       } else if (order?.receiptData?.validationStatus === 'rejected') {
         return 'Tu pedido está listo, pero necesitas subir un nuevo comprobante de transferencia.';
       }
-      return '¡Tu pedido está listo! Completa el pago para poder retirarlo.';
+      return '¡Tu pedido está listo! Ya puedes pasar a pagar.';
     }
     if (st === 'Entregado') return 'Pedido entregado. ¡Gracias por tu compra!';
     
@@ -187,7 +187,7 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
               <div className="bg-green-100 text-green-800 p-3 rounded mb-4 text-center font-semibold">
                 ✅ Pago confirmado el{' '}
                 {order.paymentDate
-                  ? new Date(order.paymentDate).toLocaleString()
+                  ? new Date(order.paymentDate).toLocaleDateString('es-CL')
                   : 'fecha desconocida'}
                 {order.paymentMethod && (
                   <span className="block text-sm mt-1">
@@ -264,7 +264,7 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
               {order.items?.map((it, idx) => (
                 <li key={idx}>
                   {it.name} — {Number(it.quantity).toFixed(3)} {it.unit || 'kg'} ($
-                  {(Number(it.price) || 0).toLocaleString('es-CL')})
+                  {Math.round(Number(it.price) || 0)})
                 </li>
               ))}
             </ul>
@@ -276,16 +276,16 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Subtotal:</span>
-                      <span>${totalCLP.toLocaleString('es-CL')}</span>
+                      <span>${Math.round(totalCLP)}</span>
                     </div>
                     <div className="flex justify-between text-green-600">
                       <span>Descuento (5%):</span>
-                      <span>-${discountAmount.toLocaleString('es-CL')}</span>
+                      <span>-${Math.round(discountAmount)}</span>
                     </div>
                     <hr className="border-green-200" />
                     <div className="flex justify-between font-bold text-green-800">
                       <span>Total a pagar:</span>
-                      <span>${finalAmount.toLocaleString('es-CL')}</span>
+                      <span>${Math.round(finalAmount)}</span>
                     </div>
                   </div>
                 </div>
@@ -294,7 +294,7 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
             
             <div className="mt-3 border-t pt-3 flex justify-between font-bold text-lg text-red-700">
               <span>Total{isFrequentUser && order.status === 'Listo' && !order.paid ? ' con descuento' : ''}:</span>
-              <span>${(isFrequentUser && order.status === 'Listo' && !order.paid ? finalAmount : totalCLP).toLocaleString('es-CL')}</span>
+              <span>${Math.round(isFrequentUser && order.status === 'Listo' && !order.paid ? finalAmount : totalCLP)}</span>
             </div>
           </div>
 

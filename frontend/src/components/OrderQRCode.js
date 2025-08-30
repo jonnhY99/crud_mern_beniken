@@ -73,7 +73,7 @@ const OrderQRCode = ({ order, onClose }) => {
                 {order.items?.map((item, idx) => (
                   <li key={idx} className="flex justify-between">
                     <span>{item.name} - {Number(item.quantity).toFixed(3)} {item.unit || 'kg'}</span>
-                    <span>${(Number(item.price) || 0).toLocaleString('es-CL')}</span>
+                    <span>${Math.round(Number(item.price) || 0)}</span>
                   </li>
                 ))}
               </ul>
@@ -82,7 +82,7 @@ const OrderQRCode = ({ order, onClose }) => {
             <div className="border-t pt-3">
               <div className="flex justify-between items-center font-bold text-lg">
                 <span>Total a pagar:</span>
-                <span className="text-red-700">${total.toLocaleString('es-CL')}</span>
+                <span className="text-red-700">${Math.round(total)}</span>
               </div>
             </div>
 

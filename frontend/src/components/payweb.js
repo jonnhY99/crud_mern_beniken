@@ -126,7 +126,7 @@ const PayWeb = () => {
                 <div>
                   <span className="font-semibold text-gray-700">Monto a pagar:</span>
                   <span className="ml-2 text-2xl font-bold text-red-700">
-                    ${Math.round(order.totalCLP || 0).toLocaleString('es-CL')}
+                    ${Math.round(order.totalCLP || 0)}
                   </span>
                 </div>
               </div>

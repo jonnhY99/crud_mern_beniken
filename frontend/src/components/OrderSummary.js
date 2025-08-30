@@ -21,7 +21,7 @@ const OrderSummary = ({ cartItems, total }) => {
                 {item.name} ({item.quantity} {item.unit})
               </span>
               <span>
-                ${subtotal.toLocaleString('es-CL')}
+                ${Math.round(subtotal)}
               </span>
             </div>
           );
@@ -30,7 +30,7 @@ const OrderSummary = ({ cartItems, total }) => {
       <div className="flex justify-between items-center border-t border-gray-200 pt-4">
         <span className="text-xl font-bold text-gray-800">Total:</span>
         <span className="text-3xl font-bold text-red-700">
-          ${totalCalculado.toLocaleString('es-CL')}
+          ${Math.round(totalCalculado)}
         </span>
       </div>
     </div>
