@@ -57,7 +57,7 @@ const AdminOrderCard = ({ order, onUpdateStatus }) => {
       {/* Total y cambio de estado */}
       <div className="flex justify-between items-center border-t border-gray-200 pt-4">
         <span className="text-xl font-bold text-gray-800">
-          Total: ${Math.round(Number(order.totalCLP || 0))}
+          Total: {formatCLP(order.totalCLP || 0)}
         </span>
         <select
           value={order.status}

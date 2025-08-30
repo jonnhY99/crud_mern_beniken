@@ -71,16 +71,36 @@ export default function ordersRouterFactory(io) {
   // 📌 GET por id (público para tracking)
   router.get("/:id", async (req, res) => {
     try {
-      const q = req.params.id;
-      let order = await Order.findOne({ id: q });
-      if (!order && q.match(/^[0-9a-fA-F]{24}$/)) {
-        order = await Order.findById(q);
+      const order = await Order.findOne({ id: req.params.id });
+      if (!order) {
+        return res.status(404).json({ success: false, message: "Pedido no encontrado" });
       }
-      if (!order) return res.status(404).json({ error: "Pedido no encontrado" });
       res.json(order);
-    } catch (err) {
-      console.error("❌ Error GET /orders/:id:", err);
-      res.status(500).json({ error: "Error consultando pedido" });
+    } catch (error) {
+      console.error("Error al obtener pedido:", error);
+      res.status(500).json({ success: false, message: "Error interno del servidor" });
+    }
+  });
+
+  // GET /api/orders/customer/:email - obtener pedidos de un cliente por email y nombre
+  router.get("/customer/:email", async (req, res) => {
+    try {
+      const { email } = req.params;
+      const { name } = req.query;
+      
+      if (!email || !name) {
+        return res.status(400).json({ success: false, message: "Email y nombre son requeridos" });
+      }
+
+      const orders = await Order.find({ 
+        customerEmail: email,
+        customerName: name
+      }).sort({ createdAt: -1 }); // Más recientes primero
+
+      res.json(orders);
+    } catch (error) {
+      console.error("Error al obtener pedidos del cliente:", error);
+      res.status(500).json({ success: false, message: "Error interno del servidor" });
     }
   });
 

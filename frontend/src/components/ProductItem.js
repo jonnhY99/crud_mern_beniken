@@ -3,8 +3,8 @@ import { AuthContext } from '../context/AuthContext';
 import { Plus, Minus } from 'lucide-react';
 
 const formatCLP = (value) => {
-  // 6298 => "$6.298"
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
+  // 1500 => "$1.500"
+  return `$${Math.round(value).toLocaleString('es-CL')}`;
 };
 
 const ProductItem = ({ product, onAddToCart, onEditProduct }) => {
@@ -57,18 +57,18 @@ const ProductItem = ({ product, onAddToCart, onEditProduct }) => {
         <span className="text-gray-500 text-xs sm:text-sm">Stock: {Math.round(product.stock || 0)}</span>
       </div>
 
-      {/* Quantity selector and estimated price - Improved spacing */}
-      <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
+      {/* Quantity selector and estimated price - Compact design */}
+      <div className="flex items-end gap-3">
         <div className="flex-1">
           <label className="text-xs text-gray-600 mb-1 block">Cantidad ({product.unit})</label>
-          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+          <div className="flex items-center border border-gray-300 rounded-md overflow-hidden max-w-[120px]">
             {/* Botón decrementar */}
             <button
               type="button"
               onClick={decrementQuantity}
-              className="px-2 sm:px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors touch-manipulation"
+              className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors touch-manipulation"
             >
-              <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
+              <Minus className="w-3 h-3" />
             </button>
             
             {/* Input de cantidad */}
@@ -78,25 +78,25 @@ const ProductItem = ({ product, onAddToCart, onEditProduct }) => {
               onChange={handleQuantityChange}
               step="0.1"
               min="0.1"
-              className="w-12 sm:w-16 px-1 sm:px-2 py-2 text-center text-sm border-0 focus:outline-none focus:ring-0"
+              className="w-10 px-1 py-1.5 text-center text-xs border-0 focus:outline-none focus:ring-0"
             />
             
             {/* Botón incrementar */}
             <button
               type="button"
               onClick={incrementQuantity}
-              className="px-2 sm:px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors touch-manipulation"
+              className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors touch-manipulation"
             >
-              <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+              <Plus className="w-3 h-3" />
             </button>
           </div>
         </div>
 
-        {/* Estimated price display - Better spacing */}
-        <div className="flex-1 sm:flex-initial sm:min-w-[120px]">
+        {/* Estimated price display - Compact */}
+        <div className="flex-1">
           <label className="text-xs text-gray-600 mb-1 block">Precio estimado</label>
-          <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            <span className="text-base sm:text-lg font-bold text-green-700 block text-center sm:text-left">
+          <div className="bg-green-50 border border-green-200 rounded-md px-2 py-1.5">
+            <span className="text-sm font-bold text-green-700 block">
               {formatCLP(estimatedPrice)}
             </span>
           </div>

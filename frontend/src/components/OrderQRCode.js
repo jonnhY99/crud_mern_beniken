@@ -18,7 +18,11 @@ const OrderQRCode = ({ order, onClose }) => {
     status: order.status
   });
 
-  const total = Math.round(order.totalCLP || 0);
+  const formatCLP = (value) => {
+    return `$${Math.round(value).toLocaleString('es-CL')}`;
+  };
+
+  const total = formatCLP(order.totalCLP || 0);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

@@ -11,10 +11,13 @@ const PaymentPage = ({ onPaymentComplete }) => {
   const [processing, setProcessing] = useState(false);
   const navigate = useNavigate();
 
-  // 🔹 Cargar datos del pedido para mostrar total actualizado
+  // Cargar datos del pedido para mostrar total actualizado
   useEffect(() => {
     const load = async () => {
       try {
+        const formatCLP = (value) => {
+          return `$${Math.round(value).toLocaleString('es-CL')}`;
+        };
         const data = await fetchOrderById(orderId);
         setOrder(data);
       } catch (err) {
@@ -69,7 +72,7 @@ const PaymentPage = ({ onPaymentComplete }) => {
           <p className="text-center text-lg text-gray-700">
             Total a pagar:{' '}
             <span className="font-bold text-red-700 text-xl">
-              ${Math.round(order.totalCLP)}
+              ${Math.round(order.totalCLP).toLocaleString('es-CL')}
             </span>
           </p>
         </div>

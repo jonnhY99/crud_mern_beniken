@@ -104,26 +104,37 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
     };
 
     try {
-      // ✅ Registrar compra para sistema de usuarios frecuentes
-      const response = await apiFetch('/api/users/purchase', {
-        method: 'POST',
-        body: JSON.stringify({ email, name, phone }),
-      });
-
-      // Mostrar mensaje de usuario frecuente si aplica
-      if (response.user && response.user.isFrequent) {
-        addToast(`🎉 ${response.message}`, 'success');
+      // Registrar compra para usuario frecuente y guardar datos del cliente
+      if (email && name) {
+        try {
+          await apiFetch('/api/users/purchase', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: email,
+              name: name,
+              phone: phone
+            })
+          });
+          
+          // Guardar datos del cliente para el tracker de múltiples pedidos
+          localStorage.setItem('customerData', JSON.stringify({
+            email: email,
+            name: name,
+            phone: phone
+          }));
+        } catch (error) {
+          console.warn('Error registering purchase:', error);
+        }
       }
 
-      // 🔔 Emitir evento global para actualizar "Usuarios Frecuentes"
-      window.dispatchEvent(new Event('userFrequentUpdated'));
-
-      // Continuar con el flujo normal del pedido
-      onSubmit(customerData);
-    } catch (err) {
-      // Si falla el registro de compra, continuar igual con el pedido
-      console.warn('Error registrando compra para usuarios frecuentes:', err);
-      onSubmit(customerData);
+      // Redirect to payment selection
+      navigate(`/payment/${customerData.id}`);
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('Error al crear el pedido. Por favor, inténtalo de nuevo.');
+    } finally {
+      // setLoading(false);
     }
   };
 

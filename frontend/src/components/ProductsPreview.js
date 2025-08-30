@@ -44,7 +44,7 @@ const ProductsPreview = ({ products = [] }) => {
                 
                 <div className="flex items-center justify-between">
                   <div className="text-2xl font-bold text-red-700">
-                    ${Math.round(product.price || 0)}
+                    {formatCLP(product.price || 0)}
                     <span className="text-sm text-gray-500 font-normal">
                       /{product.unit || 'kg'}
                     </span>

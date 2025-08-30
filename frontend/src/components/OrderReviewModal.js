@@ -83,7 +83,7 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
                   <div>
                     <h4 className="font-semibold text-gray-800">{it.name}</h4>
                     <p className="text-sm text-gray-600">
-                      Precio: ${Math.round(it.price || 0)}/{it.unit}
+                      Precio: ${Math.round(it.price || 0).toLocaleString('es-CL')}/{it.unit}
                     </p>
                   </div>
                 </div>
@@ -97,7 +97,7 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
                       {it.originalQuantity} {it.unit}
                     </div>
                     <div className="text-xs md:text-sm text-gray-500">
-                      Precio: ${Math.round((it.price || 0) * (it.originalQuantity || 0))}
+                      Precio: ${Math.round((it.price || 0) * (it.originalQuantity || 0)).toLocaleString('es-CL')}
                     </div>
                   </div>
                   
@@ -140,7 +140,7 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
                     
                     <div className="text-xs text-gray-500 mt-1">
                       {it.inputMode === 'weight' 
-                        ? `Calculado: $${Math.round(it.exactWeight * (it.price || 0))}`
+                        ? `Calculado: $${Math.round(it.exactWeight * (it.price || 0)).toLocaleString('es-CL')}`
                         : `Calculado: ${(it.exactPrice / (it.price || 1)).toFixed(3)} ${it.unit}`
                       }
                     </div>
@@ -162,14 +162,14 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-gray-600">Precio Original:</span>
                     <span className="font-medium">
-                      ${Math.round((it.price || 0) * (it.originalQuantity || 0))}
+                      ${Math.round((it.price || 0) * (it.originalQuantity || 0)).toLocaleString('es-CL')}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-gray-600">Precio Final:</span>
                     <span className="font-bold text-blue-600">
-                      ${Math.round(newItemPrice)}
+                      ${Math.round(newItemPrice).toLocaleString('es-CL')}
                     </span>
                   </div>
                   
@@ -178,7 +178,7 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
                     <span className={`font-bold ${
                       priceDiff > 0 ? 'text-red-600' : priceDiff < 0 ? 'text-green-600' : 'text-gray-600'
                     }`}>
-                      {priceDiff > 0 ? '+' : ''}${Math.round(priceDiff)}
+                      {priceDiff > 0 ? '+' : ''}${Math.round(priceDiff).toLocaleString('es-CL')}
                     </span>
                   </div>
                 </div>
@@ -191,14 +191,14 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm md:text-lg font-medium text-gray-700">Total Original:</span>
             <span className="text-sm md:text-lg font-semibold">
-              ${Math.round(items.reduce((sum, it) => sum + (it.price || 0) * (it.originalQuantity || 0), 0))}
+              {formatCLP(items.reduce((sum, it) => sum + (it.price || 0) * (it.originalQuantity || 0), 0))}
             </span>
           </div>
           
           <div className="flex justify-between items-center mb-2">
             <span className="text-base md:text-xl font-bold text-blue-700">Nuevo Total:</span>
             <span className="text-base md:text-xl font-bold text-blue-700">
-              ${Math.round(total)}
+              {formatCLP(total)}
             </span>
           </div>
           
@@ -210,7 +210,7 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
                 : 'text-green-600'
             }`}>
               {(total - items.reduce((sum, it) => sum + (it.price || 0) * (it.originalQuantity || 0), 0)) > 0 ? '+' : ''}
-              ${Math.round(total - items.reduce((sum, it) => sum + (it.price || 0) * (it.originalQuantity || 0), 0))}
+              ${Math.round(total - items.reduce((sum, it) => sum + (it.price || 0) * (it.originalQuantity || 0), 0)).toLocaleString('es-CL')}
             </span>
           </div>
         </div>

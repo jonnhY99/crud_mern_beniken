@@ -160,6 +160,10 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
     return Math.round(total);
   }, [order?.items]);
 
+  const formatCLP = (value) => {
+    return `$${Math.round(value).toLocaleString('es-CL')}`;
+  };
+
   // Calculate discount for frequent users (5% discount)
   const discountPercentage = isFrequentUser ? 5 : 0;
   const discountAmount = Math.round((totalCLP * discountPercentage) / 100);
@@ -197,9 +201,9 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
               </div>
             ) : (order.receiptData && order.receiptData.validationStatus === 'pending' && order.status === 'Listo' && order.receiptData.uploadedAt) ? (
               <div className="bg-blue-100 text-blue-800 p-3 rounded mb-4 text-center font-semibold">
-                🔍 Comprobante en validación
+                🔍 Tu pedido está listo, pero estamos validando tu comprobante de transferencia.
                 <span className="block text-sm mt-1">
-                  📄 Tu comprobante de transferencia está siendo revisado por la carnicería. Te notificaremos cuando sea validado.
+                  📄 Tu comprobante está siendo revisado por la carnicería. Te notificaremos cuando sea validado.
                 </span>
               </div>
             ) : (order.receiptData && order.receiptData.validationStatus === 'rejected' && order.status === 'Listo' && order.receiptData.uploadedAt) ? (
@@ -207,6 +211,13 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
                 ❌ Transferencia rechazada
                 <span className="block text-sm mt-1">
                   {order.receiptData.validationNotes || 'Contacta con la carnicería para más información'}
+                </span>
+              </div>
+            ) : order.status === 'Listo' ? (
+              <div className="bg-green-100 text-green-800 p-3 rounded mb-4 text-center font-semibold">
+                ✅ Tu pedido está listo, ahora puedes pagar
+                <span className="block text-sm mt-1">
+                  💳 Selecciona tu método de pago preferido
                 </span>
               </div>
             ) : (
@@ -264,7 +275,7 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
               {order.items?.map((it, idx) => (
                 <li key={idx}>
                   {it.name} — {Number(it.quantity).toFixed(3)} {it.unit || 'kg'} ($
-                  {Math.round(Number(it.price) || 0)})
+                  {Math.round(Number(it.price) || 0).toLocaleString('es-CL')})
                 </li>
               ))}
             </ul>
@@ -276,16 +287,16 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Subtotal:</span>
-                      <span>${Math.round(totalCLP)}</span>
+                      <span>${Math.round(totalCLP).toLocaleString('es-CL')}</span>
                     </div>
                     <div className="flex justify-between text-green-600">
                       <span>Descuento (5%):</span>
-                      <span>-${Math.round(discountAmount)}</span>
+                      <span>-${Math.round(discountAmount).toLocaleString('es-CL')}</span>
                     </div>
                     <hr className="border-green-200" />
                     <div className="flex justify-between font-bold text-green-800">
                       <span>Total a pagar:</span>
-                      <span>${Math.round(finalAmount)}</span>
+                      <span>${Math.round(finalAmount).toLocaleString('es-CL')}</span>
                     </div>
                   </div>
                 </div>
@@ -294,7 +305,7 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
             
             <div className="mt-3 border-t pt-3 flex justify-between font-bold text-lg text-red-700">
               <span>Total{isFrequentUser && order.status === 'Listo' && !order.paid ? ' con descuento' : ''}:</span>
-              <span>${Math.round(isFrequentUser && order.status === 'Listo' && !order.paid ? finalAmount : totalCLP)}</span>
+              <span>${Math.round(isFrequentUser && order.status === 'Listo' && !order.paid ? finalAmount : totalCLP).toLocaleString('es-CL')}</span>
             </div>
           </div>
 

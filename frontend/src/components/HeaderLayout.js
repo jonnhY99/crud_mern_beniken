@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, Menu, X, Phone } from 'lucide-react';
 import OrderTrackerBanner from './OrderTrackerBanner';
+import MultipleOrdersTracker from './MultipleOrdersTracker';
 
 const LayoutHeader = ({ user, onLogout, cartCount }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,6 +43,9 @@ const LayoutHeader = ({ user, onLogout, cartCount }) => {
     <header className="fixed top-0 w-full bg-gradient-to-r from-red-800 via-red-700 to-red-600 backdrop-blur-sm border-b border-red-500/20 shadow-lg z-50">
       {/* 🔔 Banner de seguimiento - oculto en página de estado del pedido */}
       {shouldShowTrackingBanner && <OrderTrackerBanner />}
+      
+      {/* 📦 Tracker de múltiples pedidos activos */}
+      <MultipleOrdersTracker />
 
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">

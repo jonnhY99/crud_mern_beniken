@@ -3,6 +3,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchOrderById } from "../api/orders";
 
+const formatCLP = (value) => {
+  return `$${Math.round(value).toLocaleString('es-CL')}`;
+};
+
 const PayWeb = () => {
   const [order, setOrder] = useState(null);
   const [receiptFile, setReceiptFile] = useState(null);
@@ -126,7 +130,7 @@ const PayWeb = () => {
                 <div>
                   <span className="font-semibold text-gray-700">Monto a pagar:</span>
                   <span className="ml-2 text-2xl font-bold text-red-700">
-                    ${Math.round(order.totalCLP || 0)}
+                    ${Math.round(order.totalCLP || 0).toLocaleString('es-CL')}
                   </span>
                 </div>
               </div>

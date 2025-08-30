@@ -1,6 +1,10 @@
 // src/components/OrderSummary.js
 import React from 'react';
 
+const formatCLP = (value) => {
+  return `$${Math.round(value).toLocaleString('es-CL')}`;
+};
+
 const OrderSummary = ({ cartItems, total }) => {
   const totalCalculado = total ?? cartItems.reduce((acc, item) => {
     const precioNumerico = Number(item.price) || 0;
@@ -21,7 +25,7 @@ const OrderSummary = ({ cartItems, total }) => {
                 {item.name} ({item.quantity} {item.unit})
               </span>
               <span>
-                ${Math.round(subtotal)}
+                {formatCLP(subtotal)}
               </span>
             </div>
           );
@@ -30,7 +34,7 @@ const OrderSummary = ({ cartItems, total }) => {
       <div className="flex justify-between items-center border-t border-gray-200 pt-4">
         <span className="text-xl font-bold text-gray-800">Total:</span>
         <span className="text-3xl font-bold text-red-700">
-          ${Math.round(totalCalculado)}
+          {formatCLP(totalCalculado)}
         </span>
       </div>
     </div>

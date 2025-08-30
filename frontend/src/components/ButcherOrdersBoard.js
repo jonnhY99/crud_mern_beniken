@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from "react";
-import OrderReviewModal from "./OrderReviewModal"; // 👈 Importar modal
-import QRScanner from "./QRScanner"; // 👈 Importar escáner QR
-import { confirmOrderWeights, payOrder } from "../api/orders"; // 👈 Importar API function
+import OrderReviewModal from "./OrderReviewModal"; // Importar modal
+import QRScanner from "./QRScanner"; // Importar escáner QR
+import { confirmOrderWeights, payOrder } from "../api/orders"; // Importar API function
 
-const toCLP = (n) => `$${Math.round(n ?? 0)}`;
+const formatCLP = (value) => {
+  return `$${Math.round(value).toLocaleString('es-CL')}`;
+};
 
 function norm(s) {
   return String(s || "").toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
@@ -184,7 +186,7 @@ function OrderCard({ order, onUpdate, onDelete }) {
             <div className="font-semibold text-blue-800 mb-1">📄 Comprobante de Transferencia</div>
             <div className="space-y-1 text-blue-700">
               <div><strong>Subido:</strong> {new Date(order.receiptData.uploadedAt).toLocaleDateString('es-CL')}</div>
-              <div><strong>Monto reportado:</strong> ${Math.round(order.receiptData.reportedAmount || 0)}</div>
+              <div><strong>Monto reportado:</strong> ${Math.round(order.receiptData.reportedAmount || 0).toLocaleString('es-CL')}</div>
               <div><strong>Estado:</strong> 
                 <span className={`ml-1 px-2 py-1 rounded text-xs ${
                   order.receiptData.validationStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
