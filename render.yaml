@@ -3,13 +3,13 @@ services:
   - type: web
     name: beniken-backend
     env: node
-    buildCommand: cd backend && npm install
+    buildCommand: cd backend && npm install --production
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 5000
+        value: 10000
     
   # Frontend Service  
   - type: web
