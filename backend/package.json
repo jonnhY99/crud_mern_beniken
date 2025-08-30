@@ -3,6 +3,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "start:dev": "node start-dev.js",
+    "start:local": "node start-local.js",
     "dev": "nodemon server.js",
     "test": "node test-runner-native.js",
     "test:jest": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs",

@@ -76,3 +76,34 @@ Thumbs.db
 # Package lock files (optional, comment out if you want to track them)
 package-lock.json
 yarn.lock
+
+# Development and testing files
+*.bat
+start-*.js
+test-*.js
+debug-*.js
+fix-*.js
+users.txt
+jest.config.*
+playwright.config.js
+
+# Testing directories
+test-results/
+playwright-report/
+scripts/
+tests/
+.qodo/
+
+# Development documentation
+*_GUIDE.md
+*_STATUS.md
+TESTING.md
+DEPLOYMENT_GUIDE.md
+PRODUCTION_CLEANUP.md
+
+# Backend development files
+backend/uploads/
+backend/tests/
+
+# Frontend build (regenerated)
+frontend/build/
