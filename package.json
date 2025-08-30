@@ -1,0 +1,32 @@
+{
+  "name": "beniken-pedidos",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Sistema de pedidos para Carnes Beniken",
+  "scripts": {
+    "install:all": "node scripts/install-all.js",
+    "dev": "node scripts/dev-concurrent.js",
+    "test:backend": "node scripts/run-backend-only.js",
+    "test:frontend": "node scripts/run-frontend-tests.js",
+    "test:e2e": "node scripts/run-e2e-tests.js",
+    "test:all": "node scripts/run-all-tests.js",
+    "test:working": "node scripts/run-working-tests.js",
+    "test:enhanced": "node scripts/run-enhanced-tests.js",
+    "test:target40": "node scripts/run-target-40.js",
+    "test:complete": "node scripts/run-complete-tests.js",
+    "test:unit": "node scripts/run-all-tests.js",
+    "test:integration": "cd tests/integration && npx playwright test",
+    "test:e2e-full": "cd tests/e2e && npx playwright test",
+    "test:performance": "cd tests/e2e && npx playwright test performance.spec.js",
+    "test:accessibility": "cd tests/e2e && npx playwright test accessibility.spec.js",
+    "test:fix": "node scripts/fix-all-tests.js",
+    "test:backend-only": "node scripts/run-backend-only.js",
+    "test:coverage": "node scripts/run-coverage.js",
+    "build": "node scripts/build-frontend.js",
+    "start": "node scripts/start-backend.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "concurrently": "^8.2.2"
+  }
+}
