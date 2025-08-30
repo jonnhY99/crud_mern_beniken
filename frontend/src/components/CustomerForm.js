@@ -49,7 +49,7 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
       setFrequentUserInfo(response);
       
       if (response.isFrequent) {
-        addToast(`🎉 ¡Hola ${response.name}! Eres cliente frecuente con ${response.purchases} compras. Tendrás 5% de descuento al pagar.`, 'success');
+        addToast(`🎉 ¡Hola ${response.name || response.user?.name}! Eres cliente frecuente con ${response.purchases} compras. Tendrás 5% de descuento al pagar.`, 'success');
       }
     } catch (error) {
       console.warn('Error checking frequent user:', error);

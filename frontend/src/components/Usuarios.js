@@ -277,17 +277,29 @@ const Usuarios = () => {
               />
             </label>
 
-            <label className="block mb-2">
-              Contraseña {editUser ? "(dejar vacío para no cambiar)" : ""}:
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                className="w-full p-2 border rounded"
-              />
-            </label>
+            {/* Solo mostrar contraseña si NO es usuario frecuente */}
+            {!formData.isFrequent && (
+              <label className="block mb-2">
+                Contraseña {editUser ? "(dejar vacío para no cambiar)" : ""}:
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className="w-full p-2 border rounded"
+                />
+              </label>
+            )}
+            
+            {/* Mensaje informativo para usuarios frecuentes */}
+            {formData.isFrequent && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-2">
+                <p className="text-blue-700 text-sm">
+                  💡 <strong>Usuario Frecuente:</strong> No requiere contraseña. Solo se usa para aplicar descuentos del 5% automáticamente.
+                </p>
+              </div>
+            )}
 
             <div className="flex justify-end space-x-2 mt-4">
               <button

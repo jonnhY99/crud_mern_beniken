@@ -170,7 +170,7 @@ export const registerPurchase = async (req, res) => {
     let user = await User.findOne({ 
       email: email,
       name: name,
-      role: 'customer'
+      role: 'cliente'
     });
 
     if (!user) {
@@ -179,7 +179,7 @@ export const registerPurchase = async (req, res) => {
         name: name || 'Cliente',
         email: email,
         phone: phone || '',
-        role: 'customer',
+        role: 'cliente',
         purchases: 1,
         isFrequent: false
       });
