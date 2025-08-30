@@ -27,17 +27,25 @@ const Usuarios = () => {
   const fetchFrequentUsers = async () => {
     try {
       const data = await getFrequentUsers();
-      setFrecuentes(data);
+      // El backend retorna { success: true, users: [...] }
+      setFrecuentes(Array.isArray(data) ? data : (data?.users || []));
     } catch {
       addToast("Error cargando frecuentes", "error");
+      setFrecuentes([]); // Fallback seguro
     }
   };
 
   // 🔹 Cargar usuarios normales al montar
   useEffect(() => {
     getUsers()
-      .then((data) => setUsuarios(data))
-      .catch(() => addToast("Error cargando usuarios", "error"));
+      .then((data) => {
+        // Validación defensiva para usuarios normales también
+        setUsuarios(Array.isArray(data) ? data : (data?.users || []));
+      })
+      .catch(() => {
+        addToast("Error cargando usuarios", "error");
+        setUsuarios([]); // Fallback seguro
+      });
   }, []);
 
   // 🔹 Cargar usuarios frecuentes al montar
@@ -144,7 +152,7 @@ const Usuarios = () => {
             </tr>
           </thead>
           <tbody>
-            {usuarios.map((usuario) => (
+            {(usuarios || []).map((usuario) => (
               <tr key={usuario._id} className="hover:bg-gray-100">
                 <td className="py-2 px-4 border-b">{usuario.name}</td>
                 <td className="py-2 px-4 border-b">{usuario.email}</td>
@@ -181,7 +189,7 @@ const Usuarios = () => {
             </tr>
           </thead>
           <tbody>
-            {frecuentes.map((usuario) => (
+            {(frecuentes || []).map((usuario) => (
               <tr key={usuario._id} className="hover:bg-gray-100">
                 <td className="py-2 px-4 border-b">{usuario.name}</td>
                 <td className="py-2 px-4 border-b">{usuario.email}</td>
