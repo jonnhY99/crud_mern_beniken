@@ -89,3 +89,22 @@ export function deleteOrder(id) {
     method: "DELETE",
   });
 }
+
+// ================== ANALYTICS ==================
+
+// Obtener datos del dashboard
+export function getDashboardData() {
+  return apiFetch("/api/analytics/dashboard");
+}
+
+// Obtener inventario de stock
+export function getStockInventory() {
+  return apiFetch("/api/analytics/stock-inventory");
+}
+
+// ================== USUARIOS FRECUENTES ==================
+
+// Verificar si un usuario es frecuente
+export function checkFrequentUser(name, email) {
+  return apiFetch(`/api/users/check-frequent/${encodeURIComponent(email)}?name=${encodeURIComponent(name)}`);
+}

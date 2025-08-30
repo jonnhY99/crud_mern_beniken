@@ -9,9 +9,31 @@ export const registerUser = async (req, res) => {
   try {
     const user = new User(req.body);
     const savedUser = await user.save();
-    res.status(201).json(savedUser);
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: savedUser._id, role: savedUser.role },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '1d' }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Usuario registrado exitosamente',
+      user: {
+        id: savedUser._id,
+        name: savedUser.name,
+        email: savedUser.email,
+        role: savedUser.role
+      },
+      token
+    });
   } catch (error) {
-    res.status(400).json({ message: 'Error al registrar usuario', error: error.message });
+    res.status(400).json({ 
+      success: false,
+      message: 'Error al registrar usuario', 
+      error: error.message 
+    });
   }
 };
 
@@ -22,14 +44,20 @@ export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+    if (!user) return res.status(404).json({ 
+      success: false,
+      message: 'Usuario no encontrado' 
+    });
 
     const isMatch = await user.matchPassword(password);
-    if (!isMatch) return res.status(400).json({ message: 'Contraseña incorrecta' });
+    if (!isMatch) return res.status(400).json({ 
+      success: false,
+      message: 'Contraseña incorrecta' 
+    });
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'fallback_secret',
       { expiresIn: '1d' }
     );
 
@@ -37,9 +65,23 @@ export const loginUser = async (req, res) => {
     const log = new LoginLog({ userId: user._id, email: user.email });
     await log.save();
 
-    res.json({ token, user });
+    res.json({ 
+      success: true,
+      message: 'Login exitoso',
+      token, 
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error en el login', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Error en el login', 
+      error: error.message 
+    });
   }
 };
 
@@ -122,34 +164,123 @@ export const deleteUser = async (req, res) => {
 // =========================
 export const registerPurchase = async (req, res) => {
   try {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
+    const { email, name, phone } = req.body;
+    
+    // Buscar usuario por nombre Y email, solo clientes
+    let user = await User.findOne({ 
+      email: email,
+      name: name,
+      role: 'customer'
+    });
 
     if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
+      // Crear usuario automáticamente si no existe
+      user = new User({
+        name: name || 'Cliente',
+        email: email,
+        phone: phone || '',
+        role: 'customer',
+        purchases: 1,
+        isFrequent: false
+      });
+    } else {
+      // Usuario existe, incrementar compras
+      user.purchases += 1;
     }
 
-    user.purchases += 1;
-
+    // Marcar como frecuente si tiene 2 o más compras
     if (user.purchases >= 2) {
       user.isFrequent = true;
     }
 
     await user.save();
-    res.json({ message: 'Compra registrada', user });
+    
+    const message = user.purchases >= 2 && user.isFrequent 
+      ? `¡Felicitaciones! Ahora eres un cliente frecuente con ${user.purchases} compras`
+      : `Compra registrada. Llevas ${user.purchases} compra(s)`;
+
+    res.json({ 
+      message, 
+      user: {
+        name: user.name,
+        email: user.email,
+        purchases: user.purchases,
+        isFrequent: user.isFrequent
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error al registrar compra', error: error.message });
   }
 };
 
 // =========================
-// Obtener solo usuarios frecuentes
+// Verificar si usuario es frecuente por nombre y email
+// =========================
+export const checkFrequentUser = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { name } = req.query; // Recibir nombre por query parameter
+    
+    if (!name) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Nombre es requerido',
+        isFrequent: false, 
+        purchases: 0 
+      });
+    }
+    
+    // Buscar usuario por nombre Y email, solo clientes
+    const user = await User.findOne({ 
+      email: email,
+      name: name,
+      role: 'cliente'
+    });
+    
+    if (!user) {
+      return res.json({ 
+        success: true,
+        isFrequent: false, 
+        purchases: 0 
+      });
+    }
+
+    res.json({ 
+      success: true,
+      isFrequent: user.isFrequent, 
+      purchases: user.purchases,
+      user: {
+        name: user.name,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Error al verificar usuario frecuente', 
+      error: error.message 
+    });
+  }
+};
+
+// =========================
+// Obtener solo usuarios frecuentes (solo clientes)
 // =========================
 export const getFrequentUsers = async (req, res) => {
   try {
-    const users = await User.find({ isFrequent: true }).select('-password');
-    res.json(users);
+    const users = await User.find({ 
+      isFrequent: true,
+      role: 'cliente'
+    }).select('-password');
+    res.json({
+      success: true,
+      users
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener usuarios frecuentes', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Error al obtener usuarios frecuentes', 
+      error: error.message 
+    });
   }
 };

@@ -69,8 +69,8 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
+      <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">⚖️ Ajustar Peso Exacto de Balanza</h2>
         <div className="space-y-4">
           {items.map((it, idx) => {
@@ -88,15 +88,15 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 mb-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Cantidad Original:
                     </label>
-                    <div className="text-lg font-semibold text-gray-600">
+                    <div className="text-base md:text-lg font-semibold text-gray-600">
                       {it.originalQuantity} {it.unit}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-xs md:text-sm text-gray-500">
                       Precio: ${((it.price || 0) * (it.originalQuantity || 0)).toLocaleString('es-CL')}
                     </div>
                   </div>
@@ -148,14 +148,14 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
                 </div>
                 
                 <div className="bg-white rounded p-3 border">
-                  <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-3">
                     <div>
                       <div className="text-xs text-gray-500 mb-1">Peso Original:</div>
-                      <div className="font-medium">{it.originalQuantity} {it.unit}</div>
+                      <div className="font-medium text-sm sm:text-base">{it.originalQuantity} {it.unit}</div>
                     </div>
                     <div>
                       <div className="text-xs text-gray-500 mb-1">Peso Final:</div>
-                      <div className="font-bold text-blue-600">{it.exactWeight.toFixed(3)} {it.unit}</div>
+                      <div className="font-bold text-blue-600 text-sm sm:text-base">{it.exactWeight.toFixed(3)} {it.unit}</div>
                     </div>
                   </div>
                   
@@ -187,24 +187,24 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
           })}
         </div>
 
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-lg font-medium text-gray-700">Total Original:</span>
-            <span className="text-lg font-semibold">
+            <span className="text-sm md:text-lg font-medium text-gray-700">Total Original:</span>
+            <span className="text-sm md:text-lg font-semibold">
               ${items.reduce((sum, it) => sum + (it.price || 0) * (it.originalQuantity || 0), 0).toLocaleString("es-CL")}
             </span>
           </div>
           
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xl font-bold text-blue-700">Nuevo Total:</span>
-            <span className="text-xl font-bold text-blue-700">
+            <span className="text-base md:text-xl font-bold text-blue-700">Nuevo Total:</span>
+            <span className="text-base md:text-xl font-bold text-blue-700">
               ${total.toLocaleString("es-CL")}
             </span>
           </div>
           
           <div className="flex justify-between items-center border-t border-blue-300 pt-2">
-            <span className="text-lg font-medium">Diferencia Total:</span>
-            <span className={`text-lg font-bold ${
+            <span className="text-sm md:text-lg font-medium">Diferencia Total:</span>
+            <span className={`text-sm md:text-lg font-bold ${
               (total - items.reduce((sum, it) => sum + (it.price || 0) * (it.originalQuantity || 0), 0)) > 0 
                 ? 'text-red-600' 
                 : 'text-green-600'
@@ -215,15 +215,15 @@ export default function OrderReviewModal({ order, onSave, onClose }) {
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="mt-4 md:mt-6 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
           <button
-            className="px-4 py-2 bg-gray-300 rounded"
+            className="px-4 py-2 bg-gray-300 rounded order-2 sm:order-1"
             onClick={onClose}
           >
             Cancelar
           </button>
           <button
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
+            className="px-4 md:px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold order-1 sm:order-2"
             onClick={handleSave}
           >
             ✅ Confirmar Pesos y Marcar LISTO

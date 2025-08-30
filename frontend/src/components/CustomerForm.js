@@ -11,49 +11,119 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
   const [pickupTime, setPickupTime] = useState('10:00 AM');
   const [isDelivery, setIsDelivery] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [isFrequentUser, setIsFrequentUser] = useState(false);
+  const [frequentUserInfo, setFrequentUserInfo] = useState(null);
+  const [isCheckingFrequent, setIsCheckingFrequent] = useState(false);
   const { addToast } = useToast();
   
   // Check if delivery is available (minimum 100,000 CLP)
   const isDeliveryAvailable = totalAmount >= 100000;
 
+  // Validation functions
+  const validateName = (name) => {
+    // Allow any name with letters, spaces, accents, hyphens, apostrophes
+    const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$/;
+    return name.trim().length >= 2 && nameRegex.test(name.trim());
+  };
+
+  const validateEmail = (email) => {
+    // More flexible email validation allowing various domains and special characters
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email.trim());
+  };
+
+  const validatePhone = (phone) => {
+    // Chilean phone format: +569 followed by 8 digits
+    const phoneRegex = /^\+569[0-9]{8}$/;
+    return phoneRegex.test(phone.trim());
+  };
+
+  // Check if user is frequent when email and name are available
+  const checkFrequentUser = async (email, userName) => {
+    if (!validateEmail(email) || !userName || userName.trim().length < 2) return;
+    
+    setIsCheckingFrequent(true);
+    try {
+      const response = await apiFetch(`/api/users/check-frequent/${encodeURIComponent(email)}?name=${encodeURIComponent(userName.trim())}`);
+      setIsFrequentUser(response.isFrequent);
+      setFrequentUserInfo(response);
+      
+      if (response.isFrequent) {
+        addToast(`🎉 ¡Hola ${response.name}! Eres cliente frecuente con ${response.purchases} compras. Tendrás 5% de descuento al pagar.`, 'success');
+      }
+    } catch (error) {
+      console.warn('Error checking frequent user:', error);
+    } finally {
+      setIsCheckingFrequent(false);
+    }
+  };
+
+  // Calculate discount and final amount (5% for frequent users)
+  const discountPercentage = isFrequentUser ? 5 : 0;
+  const discountAmount = (totalAmount * discountPercentage) / 100;
+  const finalAmount = totalAmount - discountAmount;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate required fields
-    const requiredFields = [name, phone, email];
-    if (!isDelivery) requiredFields.push(pickupTime);
-    if (isDelivery) requiredFields.push(deliveryAddress);
-    
-    if (requiredFields.every(field => field.trim())) {
-      const customerData = { 
-        name, 
-        phone, 
-        email, 
-        pickupTime: isDelivery ? null : pickupTime, 
-        note,
-        isDelivery,
-        deliveryAddress: isDelivery ? deliveryAddress : null
-      };
+    // Validate individual fields
+    if (!validateName(name)) {
+      addToast('Por favor, ingresa un nombre válido (mínimo 2 caracteres, solo letras).', 'error');
+      return;
+    }
 
-      try {
-        // ✅ Registrar compra en backend
-        await apiFetch('/api/users/purchase', {
-          method: 'POST',
-          body: JSON.stringify({ email }),
-        });
+    if (!validateEmail(email)) {
+      addToast('Por favor, ingresa un correo electrónico válido.', 'error');
+      return;
+    }
 
-        addToast('Compra registrada correctamente ✅');
+    if (!validatePhone(phone)) {
+      addToast('Por favor, ingresa un teléfono válido con formato +569XXXXXXXX', 'error');
+      return;
+    }
 
-        // 🔔 Emitir evento global para actualizar "Usuarios Frecuentes"
-        window.dispatchEvent(new Event('userFrequentUpdated'));
+    if (isDelivery && !deliveryAddress.trim()) {
+      addToast('Por favor, ingresa una dirección de despacho.', 'error');
+      return;
+    }
 
-        // continuar con el flujo normal
-        onSubmit(customerData);
-      } catch (err) {
-        addToast('Error registrando compra ❌', 'error');
+    if (!isDelivery && !pickupTime) {
+      addToast('Por favor, selecciona una hora de recogida.', 'error');
+      return;
+    }
+
+    // All validations passed - proceed with order
+    const customerData = { 
+      name, 
+      phone, 
+      email, 
+      pickupTime: isDelivery ? null : pickupTime, 
+      note,
+      isDelivery,
+      deliveryAddress: isDelivery ? deliveryAddress : null
+    };
+
+    try {
+      // ✅ Registrar compra para sistema de usuarios frecuentes
+      const response = await apiFetch('/api/users/purchase', {
+        method: 'POST',
+        body: JSON.stringify({ email, name, phone }),
+      });
+
+      // Mostrar mensaje de usuario frecuente si aplica
+      if (response.user && response.user.isFrequent) {
+        addToast(`🎉 ${response.message}`, 'success');
       }
-    } else {
-      addToast('Por favor, completa todos los campos obligatorios.', 'error');
+
+      // 🔔 Emitir evento global para actualizar "Usuarios Frecuentes"
+      window.dispatchEvent(new Event('userFrequentUpdated'));
+
+      // Continuar con el flujo normal del pedido
+      onSubmit(customerData);
+    } catch (err) {
+      // Si falla el registro de compra, continuar igual con el pedido
+      console.warn('Error registrando compra para usuarios frecuentes:', err);
+      onSubmit(customerData);
     }
   };
 
@@ -70,9 +140,15 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
         <input
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            // Check for frequent user when both name and email are available
+            if (e.target.value.trim().length >= 2 && email && validateEmail(email)) {
+              setTimeout(() => checkFrequentUser(email, e.target.value), 500);
+            }
+          }}
           className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          placeholder="Ej. Juan Pérez"
+          placeholder="Ej. Juan Pérez González"
           required
         />
       </div>
@@ -84,11 +160,22 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
         <input
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            // Check for frequent user when both email and name are available
+            if (e.target.value.includes('@') && e.target.value.includes('.') && name && name.trim().length >= 2) {
+              setTimeout(() => checkFrequentUser(e.target.value, name), 500);
+            }
+          }}
           className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          placeholder="Ej. carnes@beniken.com"
+          placeholder="Ej. usuario@gmail.com, correo@empresa.cl"
           required
         />
+        {isCheckingFrequent && (
+          <p className="text-blue-500 text-xs mt-1">
+            🔍 Verificando si eres cliente frecuente...
+          </p>
+        )}
       </div>
 
       <div className="mb-4">
@@ -100,9 +187,12 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          placeholder="Ej. 5512345678"
+          placeholder="Ej. +56912345678"
           required
         />
+        <p className="text-gray-500 text-xs mt-1">
+          *Formato: +569 seguido de 8 dígitos
+        </p>
       </div>
 
       {/* Delivery Option - Only show if total >= 100,000 CLP */}
@@ -195,6 +285,16 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
         </p>
       )}
       
+      {/* Frequent User Info (without showing discount amount) */}
+      {isFrequentUser && totalAmount > 0 && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+          <h3 className="text-green-800 font-bold mb-2">🎉 ¡Cliente Frecuente!</h3>
+          <p className="text-green-700 text-sm">
+            Tendrás un <strong>5% de descuento</strong> aplicado automáticamente al momento del pago final.
+          </p>
+        </div>
+      )}
+
       {!isDeliveryAvailable && totalAmount > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
           <p className="text-yellow-700 text-sm">

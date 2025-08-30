@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import { Plus, Minus } from 'lucide-react';
 
 const formatCLP = (value) => {
   // 6298 => "$6.298"
@@ -16,6 +17,14 @@ const ProductItem = ({ product, onAddToCart, onEditProduct }) => {
   const handleQuantityChange = (e) => {
     const value = parseFloat(e.target.value) || 0;
     setQuantity(Math.max(0, value)); // Ensure non-negative
+  };
+
+  const incrementQuantity = () => {
+    setQuantity(prev => Math.round((prev + 0.1) * 10) / 10); // Round to 1 decimal
+  };
+
+  const decrementQuantity = () => {
+    setQuantity(prev => Math.max(0.1, Math.round((prev - 0.1) * 10) / 10)); // Min 0.1, round to 1 decimal
   };
 
   const handleAdd = () => {
@@ -61,15 +70,36 @@ const ProductItem = ({ product, onAddToCart, onEditProduct }) => {
       <div className="flex items-center space-x-3">
         <div className="flex flex-col">
           <label className="text-xs text-gray-600 mb-1">Cantidad ({product.unit})</label>
-          <input
-            type="number"
-            min="0.1"
-            step="0.1"
-            value={quantity}
-            onChange={handleQuantityChange}
-            className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-red-500"
-            placeholder="0.5"
-          />
+          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+            {/* Botón decrementar */}
+            <button
+              type="button"
+              onClick={decrementQuantity}
+              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors focus:outline-none focus:bg-gray-200"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+            
+            {/* Input de cantidad */}
+            <input
+              type="number"
+              min="0.1"
+              step="0.1"
+              value={quantity}
+              onChange={handleQuantityChange}
+              className="w-20 px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-red-500 border-0"
+              placeholder="0.5"
+            />
+            
+            {/* Botón incrementar */}
+            <button
+              type="button"
+              onClick={incrementQuantity}
+              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors focus:outline-none focus:bg-gray-200"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
         </div>
         <button
           onClick={handleAdd}

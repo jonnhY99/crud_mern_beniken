@@ -7,6 +7,7 @@ import {
   updateUser,
   deleteUser,
   registerPurchase,
+  checkFrequentUser,
   getFrequentUsers
 } from '../controllers/userController.js';
 import { verifyToken, requireRole } from '../middleware/auth.js';
@@ -21,6 +22,9 @@ router.post('/login', loginUser);
 
 // Registrar compra
 router.post('/purchase', registerPurchase);
+
+// Verificar si usuario es frecuente
+router.get('/check-frequent/:email', checkFrequentUser);
 
 // Obtener usuarios frecuentes
 router.get('/frequent', verifyToken, requireRole('admin'), getFrequentUsers);

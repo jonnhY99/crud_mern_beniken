@@ -459,63 +459,69 @@ export default function AdminReports() {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-2 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Dashboard de Reportes</h1>
+        <div className="mb-4 md:mb-8">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 md:mb-4">Dashboard de Reportes</h1>
           
           {/* Date Range and Export Controls */}
-          <div className="bg-white p-4 rounded-lg shadow mb-6">
-            <div className="flex flex-wrap items-center gap-4 justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <FaCalendarAlt className="text-gray-500" />
-                  <label className="text-sm font-medium text-gray-700">Desde:</label>
+          <div className="bg-white p-3 md:p-4 rounded-lg shadow mb-4 md:mb-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 lg:gap-4 lg:justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full lg:w-auto">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                  <div className="flex items-center gap-2">
+                    <FaCalendarAlt className="text-gray-500 text-sm" />
+                    <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Desde:</label>
+                  </div>
                   <input
                     type="date"
                     value={dateRange.from}
                     onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
-                    className="border border-gray-300 rounded px-3 py-1 text-sm"
+                    className="border border-gray-300 rounded px-2 py-1 text-sm w-full sm:w-auto"
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700">Hasta:</label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Hasta:</label>
                   <input
                     type="date"
                     value={dateRange.to}
                     onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
-                    className="border border-gray-300 rounded px-3 py-1 text-sm"
+                    className="border border-gray-300 rounded px-2 py-1 text-sm w-full sm:w-auto"
                   />
                 </div>
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 w-full lg:w-auto justify-start lg:justify-end">
                 {dashboardData?.summary?.totalOrders === 0 && (
                   <button
                     onClick={createSampleData}
-                    className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded text-sm flex items-center gap-1"
+                    className="bg-purple-500 hover:bg-purple-600 text-white px-2 sm:px-3 py-2 rounded text-xs sm:text-sm flex items-center gap-1 flex-1 sm:flex-none justify-center"
                   >
-                    🧪 Crear Datos de Prueba
+                    <span className="hidden sm:inline">🧪 Crear Datos de Prueba</span>
+                    <span className="sm:hidden">🧪 Datos</span>
                   </button>
                 )}
                 <button
                   onClick={exportToPDF}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm flex items-center gap-1"
+                  className="bg-red-500 hover:bg-red-600 text-white px-2 sm:px-3 py-2 rounded text-xs sm:text-sm flex items-center gap-1 flex-1 sm:flex-none justify-center"
                 >
-                  📄 PDF
+                  <span className="hidden sm:inline">📄 PDF</span>
+                  <span className="sm:hidden">📄</span>
                 </button>
                 <button
                   onClick={exportToExcel}
-                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm flex items-center gap-1"
+                  className="bg-green-500 hover:bg-green-600 text-white px-2 sm:px-3 py-2 rounded text-xs sm:text-sm flex items-center gap-1 flex-1 sm:flex-none justify-center"
                 >
-                  📊 Excel
+                  <span className="hidden sm:inline">📊 Excel</span>
+                  <span className="sm:hidden">📊</span>
                 </button>
                 <button
                   onClick={exportToCSV}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm flex items-center gap-1"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-2 sm:px-3 py-2 rounded text-xs sm:text-sm flex items-center gap-1 flex-1 sm:flex-none justify-center"
                 >
-                  📋 CSV
+                  <span className="hidden sm:inline">📋 CSV</span>
+                  <span className="sm:hidden">📋</span>
                 </button>
               </div>
             </div>
@@ -539,71 +545,71 @@ export default function AdminReports() {
         {!loading && (
           <>
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-4 md:mb-8">
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-                    <FaShoppingCart size={24} />
+                  <div className="p-2 md:p-3 rounded-full bg-blue-100 text-blue-600">
+                    <FaShoppingCart size={20} className="md:w-6 md:h-6" />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Total Pedidos</p>
-                    <p className="text-2xl font-semibold text-gray-900">{dashboardData?.summary?.totalOrders || 0}</p>
+                  <div className="ml-3 md:ml-4">
+                    <p className="text-xs md:text-sm font-medium text-gray-500">Total Pedidos</p>
+                    <p className="text-lg md:text-2xl font-semibold text-gray-900">{dashboardData?.summary?.totalOrders || 0}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-full bg-green-100 text-green-600">
-                    <FaDollarSign size={24} />
+                  <div className="p-2 md:p-3 rounded-full bg-green-100 text-green-600">
+                    <FaDollarSign size={20} className="md:w-6 md:h-6" />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Ingresos Totales</p>
-                    <p className="text-2xl font-semibold text-gray-900">{toCLP(dashboardData.summary.totalRevenue)}</p>
+                  <div className="ml-3 md:ml-4">
+                    <p className="text-xs md:text-sm font-medium text-gray-500">Ingresos Totales</p>
+                    <p className="text-sm md:text-2xl font-semibold text-gray-900">{toCLP(dashboardData.summary.totalRevenue)}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-full bg-yellow-100 text-yellow-600">
-                    <FaChartBar size={24} />
+                  <div className="p-2 md:p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <FaChartBar size={20} className="md:w-6 md:h-6" />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Ticket Promedio</p>
-                    <p className="text-2xl font-semibold text-gray-900">{toCLP(dashboardData.summary.avgOrderValue)}</p>
+                  <div className="ml-3 md:ml-4">
+                    <p className="text-xs md:text-sm font-medium text-gray-500">Ticket Promedio</p>
+                    <p className="text-sm md:text-2xl font-semibold text-gray-900">{toCLP(dashboardData.summary.avgOrderValue)}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="p-3 rounded-full bg-red-100 text-red-600">
-                      <FaExclamationTriangle size={24} />
+                    <div className="p-2 md:p-3 rounded-full bg-red-100 text-red-600">
+                      <FaExclamationTriangle size={20} className="md:w-6 md:h-6" />
                     </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">Stock Bajo</p>
-                      <p className="text-2xl font-semibold text-gray-900">{dashboardData.summary.lowStockCount}</p>
+                    <div className="ml-3 md:ml-4">
+                      <p className="text-xs md:text-sm font-medium text-gray-500">Stock Bajo</p>
+                      <p className="text-lg md:text-2xl font-semibold text-gray-900">{dashboardData.summary.lowStockCount}</p>
                     </div>
                   </div>
                   <button
                     onClick={openStockModal}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-2 md:px-3 py-1 md:py-2 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors"
                   >
                     <FaBox className="text-xs" />
-                    Revisar
+                    <span className="hidden sm:inline">Revisar</span>
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-8">
               {/* Revenue Trend Chart */}
-              <div className="bg-white p-6 rounded-lg shadow revenue-chart">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Tendencia de Ingresos (Últimos 30 días)</h3>
-                <ResponsiveContainer width="100%" height={300}>
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow revenue-chart">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Tendencia de Ingresos (Últimos 30 días)</h3>
+                <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={dashboardData.charts.dailyRevenue}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
@@ -616,9 +622,9 @@ export default function AdminReports() {
               </div>
 
               {/* Order Status Distribution */}
-              <div className="bg-white p-6 rounded-lg shadow status-chart">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Distribución por Estado</h3>
-                <ResponsiveContainer width="100%" height={300}>
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow status-chart">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Distribución por Estado</h3>
+                <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
                     <Pie
                       data={statusChartData}
@@ -641,15 +647,22 @@ export default function AdminReports() {
             </div>
 
             {/* Top Products and Payment Methods */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-8">
               {/* Top Products */}
-              <div className="bg-white p-6 rounded-lg shadow products-chart">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Productos Más Vendidos</h3>
-                <ResponsiveContainer width="100%" height={300}>
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow products-chart">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Productos Más Vendidos</h3>
+                <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={dashboardData.charts.topProducts.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                    <YAxis />
+                    <XAxis 
+                      dataKey="name" 
+                      angle={-45} 
+                      textAnchor="end" 
+                      height={80} 
+                      fontSize={10}
+                      interval={0}
+                    />
+                    <YAxis fontSize={10} />
                     <Tooltip />
                     <Bar dataKey="quantity" fill="#82ca9d" />
                   </BarChart>
@@ -657,9 +670,9 @@ export default function AdminReports() {
               </div>
 
               {/* Payment Methods */}
-              <div className="bg-white p-6 rounded-lg shadow payment-chart">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Métodos de Pago</h3>
-                <ResponsiveContainer width="100%" height={300}>
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow payment-chart">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Métodos de Pago</h3>
+                <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
                     <Pie
                       data={paymentMethodsData}
@@ -683,25 +696,26 @@ export default function AdminReports() {
 
             {/* Low Stock Alert */}
             {dashboardData.alerts.lowStockProducts.length > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-red-800 flex items-center">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 md:p-6 mb-4 md:mb-8">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                  <h3 className="text-base md:text-lg font-semibold text-red-800 flex items-center">
                     <FaExclamationTriangle className="mr-2" />
                     Productos con Stock Bajo
                   </h3>
                   <button
                     onClick={openStockModal}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center"
                   >
-                    <FaBox className="text-sm" />
-                    Revisar Existencias
+                    <FaBox className="text-xs md:text-sm" />
+                    <span className="hidden sm:inline">Revisar Existencias</span>
+                    <span className="sm:hidden">Revisar</span>
                   </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                   {dashboardData.alerts.lowStockProducts.map((product, index) => (
-                    <div key={index} className="bg-white p-4 rounded border">
-                      <p className="font-medium text-gray-900">{product.name}</p>
-                      <p className="text-sm text-red-600">Stock: {product.stock} / Mínimo: {product.minStock}</p>
+                    <div key={index} className="bg-white p-3 md:p-4 rounded border">
+                      <p className="font-medium text-gray-900 text-sm md:text-base">{product.name}</p>
+                      <p className="text-xs md:text-sm text-red-600">Stock: {product.stock} / Mínimo: {product.minStock}</p>
                     </div>
                   ))}
                 </div>
@@ -712,68 +726,69 @@ export default function AdminReports() {
 
         {/* Stock Inventory Modal */}
         {showStockModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
               {/* Modal Header */}
-              <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+              <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex justify-between items-center">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
                   <FaBox className="mr-2 text-blue-600" />
-                  Inventario de Existencias
+                  <span className="hidden sm:inline">Inventario de Existencias</span>
+                  <span className="sm:hidden">Inventario</span>
                 </h2>
                 <button
                   onClick={() => setShowStockModal(false)}
-                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                  className="text-gray-400 hover:text-gray-600 text-xl sm:text-2xl font-bold"
                 >
                   ×
                 </button>
               </div>
 
               {/* Modal Content */}
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="p-3 sm:p-6 overflow-y-auto max-h-[calc(95vh-120px)] sm:max-h-[calc(90vh-120px)]">
                 {stockLoading ? (
-                  <div className="flex justify-center items-center py-12">
+                  <div className="flex justify-center items-center py-8 sm:py-12">
                     <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                      <p className="text-gray-600">Cargando inventario...</p>
+                      <div className="animate-spin rounded-full h-8 sm:h-12 w-8 sm:w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600 text-sm sm:text-base">Cargando inventario...</p>
                     </div>
                   </div>
                 ) : (
                   <>
                     {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                      <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                      <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
                         <div className="flex items-center">
-                          <FaBox className="text-blue-600 text-2xl mr-3" />
+                          <FaBox className="text-blue-600 text-lg sm:text-2xl mr-2 sm:mr-3" />
                           <div>
-                            <p className="text-sm text-blue-600 font-medium">Total Productos</p>
-                            <p className="text-2xl font-bold text-blue-800">{stockSummary.totalProducts || 0}</p>
+                            <p className="text-xs sm:text-sm text-blue-600 font-medium">Total Productos</p>
+                            <p className="text-lg sm:text-2xl font-bold text-blue-800">{stockSummary.totalProducts || 0}</p>
                           </div>
                         </div>
                       </div>
-                      <div className="bg-red-50 p-4 rounded-lg">
+                      <div className="bg-red-50 p-3 sm:p-4 rounded-lg">
                         <div className="flex items-center">
-                          <FaExclamationTriangle className="text-red-600 text-2xl mr-3" />
+                          <FaExclamationTriangle className="text-red-600 text-lg sm:text-2xl mr-2 sm:mr-3" />
                           <div>
-                            <p className="text-sm text-red-600 font-medium">Stock Bajo</p>
-                            <p className="text-2xl font-bold text-red-800">{stockSummary.lowStockProducts || 0}</p>
+                            <p className="text-xs sm:text-sm text-red-600 font-medium">Stock Bajo</p>
+                            <p className="text-lg sm:text-2xl font-bold text-red-800">{stockSummary.lowStockProducts || 0}</p>
                           </div>
                         </div>
                       </div>
-                      <div className="bg-yellow-50 p-4 rounded-lg">
+                      <div className="bg-yellow-50 p-3 sm:p-4 rounded-lg">
                         <div className="flex items-center">
-                          <FaChartBar className="text-yellow-600 text-2xl mr-3" />
+                          <FaChartBar className="text-yellow-600 text-lg sm:text-2xl mr-2 sm:mr-3" />
                           <div>
-                            <p className="text-sm text-yellow-600 font-medium">Stock Medio</p>
-                            <p className="text-2xl font-bold text-yellow-800">{stockSummary.mediumStockProducts || 0}</p>
+                            <p className="text-xs sm:text-sm text-yellow-600 font-medium">Stock Medio</p>
+                            <p className="text-lg sm:text-2xl font-bold text-yellow-800">{stockSummary.mediumStockProducts || 0}</p>
                           </div>
                         </div>
                       </div>
-                      <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="bg-green-50 p-3 sm:p-4 rounded-lg">
                         <div className="flex items-center">
-                          <FaDollarSign className="text-green-600 text-2xl mr-3" />
+                          <FaDollarSign className="text-green-600 text-lg sm:text-2xl mr-2 sm:mr-3" />
                           <div>
-                            <p className="text-sm text-green-600 font-medium">Valor Total</p>
-                            <p className="text-xl font-bold text-green-800">{toCLP(stockSummary.totalStockValue || 0)}</p>
+                            <p className="text-xs sm:text-sm text-green-600 font-medium">Valor Total</p>
+                            <p className="text-sm sm:text-xl font-bold text-green-800">{toCLP(stockSummary.totalStockValue || 0)}</p>
                           </div>
                         </div>
                       </div>
@@ -785,22 +800,22 @@ export default function AdminReports() {
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Producto
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                                 Stock Actual
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                                 Stock Mínimo
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Estado
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                                 Precio
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                                 Valor Stock
                               </th>
                             </tr>
@@ -808,23 +823,33 @@ export default function AdminReports() {
                           <tbody className="bg-white divide-y divide-gray-200">
                             {stockInventory.map((product, index) => (
                               <tr key={product.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-3 sm:px-6 py-3 sm:py-4">
                                   <div>
-                                    <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                                    <div className="text-sm text-gray-500">{product.description}</div>
+                                    <div className="text-xs sm:text-sm font-medium text-gray-900">{product.name}</div>
+                                    <div className="text-xs text-gray-500 sm:hidden">
+                                      {product.currentStock} {product.unit} - 
+                                      <span className={`${
+                                        product.stockStatus === 'low' ? 'text-red-600' : 
+                                        product.stockStatus === 'medium' ? 'text-yellow-600' : 'text-green-600'
+                                      }`}>
+                                        {product.stockStatus === 'low' ? 'Bajo' : 
+                                         product.stockStatus === 'medium' ? 'Medio' : 'Alto'}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-gray-500 hidden sm:block">{product.description}</div>
                                   </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="text-sm text-gray-900 font-medium">
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap hidden sm:table-cell">
+                                  <div className="text-xs sm:text-sm text-gray-900 font-medium">
                                     {product.currentStock} {product.unit}
                                   </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="text-sm text-gray-900">
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap hidden md:table-cell">
+                                  <div className="text-xs sm:text-sm text-gray-900">
                                     {product.minStock} {product.unit}
                                   </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                     product.stockStatus === 'low' 
                                       ? 'bg-red-100 text-red-800' 
@@ -832,17 +857,23 @@ export default function AdminReports() {
                                       ? 'bg-yellow-100 text-yellow-800'
                                       : 'bg-green-100 text-green-800'
                                   }`}>
-                                    {product.stockStatus === 'low' ? 'Bajo' : 
-                                     product.stockStatus === 'medium' ? 'Medio' : 'Alto'}
+                                    <span className="hidden sm:inline">
+                                      {product.stockStatus === 'low' ? 'Bajo' : 
+                                       product.stockStatus === 'medium' ? 'Medio' : 'Alto'}
+                                    </span>
+                                    <span className="sm:hidden">
+                                      {product.stockStatus === 'low' ? 'B' : 
+                                       product.stockStatus === 'medium' ? 'M' : 'A'}
+                                    </span>
                                   </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="text-sm text-gray-900">
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap hidden lg:table-cell">
+                                  <div className="text-xs sm:text-sm text-gray-900">
                                     {toCLP(product.price)}/{product.unit}
                                   </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="text-sm font-medium text-gray-900">
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap hidden lg:table-cell">
+                                  <div className="text-xs sm:text-sm font-medium text-gray-900">
                                     {toCLP(product.currentStock * product.price)}
                                   </div>
                                 </td>
@@ -854,10 +885,10 @@ export default function AdminReports() {
                     </div>
 
                     {stockInventory.length === 0 && (
-                      <div className="text-center py-12">
-                        <FaBox className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay productos</h3>
-                        <p className="text-gray-500">No se encontraron productos en el inventario.</p>
+                      <div className="text-center py-8 sm:py-12">
+                        <FaBox className="mx-auto h-8 sm:h-12 w-8 sm:w-12 text-gray-400 mb-4" />
+                        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No hay productos</h3>
+                        <p className="text-sm sm:text-base text-gray-500">No se encontraron productos en el inventario.</p>
                       </div>
                     )}
                   </>
@@ -865,10 +896,10 @@ export default function AdminReports() {
               </div>
 
               {/* Modal Footer */}
-              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end">
+              <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-end">
                 <button
                   onClick={() => setShowStockModal(false)}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base"
                 >
                   Cerrar
                 </button>

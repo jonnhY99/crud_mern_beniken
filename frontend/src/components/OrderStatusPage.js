@@ -3,6 +3,7 @@ import { getSocket } from '../utils/socket';
 import { fetchOrderById } from '../api/orders';
 import { useNavigate } from 'react-router-dom';
 import OrderQRCode from './OrderQRCode';
+import { apiFetch } from '../utils/api';
 
 const StatusBadge = ({ status }) => {
   const color =
@@ -30,6 +31,8 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
   const [loading, setLoading] = useState(false);
   const [seconds, setSeconds] = useState(15); // ⏳ contador para refrescar
   const [showQR, setShowQR] = useState(false);
+  const [isFrequentUser, setIsFrequentUser] = useState(false);
+  const [frequentUserInfo, setFrequentUserInfo] = useState(null);
 
   const load = async () => {
     if (!orderId) {
@@ -41,6 +44,17 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
     try {
       const data = await fetchOrderById(orderId);
       setOrder(data);
+      
+      // Check if user is frequent when order is loaded (using name + email)
+      if (data?.customerEmail && data?.customerName) {
+        try {
+          const response = await apiFetch(`/api/users/check-frequent/${encodeURIComponent(data.customerEmail)}?name=${encodeURIComponent(data.customerName)}`);
+          setIsFrequentUser(response.isFrequent);
+          setFrequentUserInfo(response);
+        } catch (error) {
+          console.warn('Error checking frequent user:', error);
+        }
+      }
     } catch (e) {
       setErr(e.message || 'No se pudo cargar el pedido.');
     } finally {
@@ -146,6 +160,11 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
     return Math.round(total);
   }, [order?.items]);
 
+  // Calculate discount for frequent users (5% discount)
+  const discountPercentage = isFrequentUser ? 5 : 0;
+  const discountAmount = Math.round((totalCLP * discountPercentage) / 100);
+  const finalAmount = totalCLP - discountAmount;
+
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-xl shadow p-6">
       <h2 className="text-3xl font-bold mb-4 text-center">Seguimiento de Pedido</h2>
@@ -249,9 +268,33 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
                 </li>
               ))}
             </ul>
+            {/* Show discount breakdown for frequent users when ready to pay */}
+            {isFrequentUser && order.status === 'Listo' && !order.paid && (
+              <div className="mt-3 border-t pt-3">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                  <h4 className="text-green-800 font-bold mb-2">🎉 ¡Cliente Frecuente - Descuento Aplicado!</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subtotal:</span>
+                      <span>${totalCLP.toLocaleString('es-CL')}</span>
+                    </div>
+                    <div className="flex justify-between text-green-600">
+                      <span>Descuento (5%):</span>
+                      <span>-${discountAmount.toLocaleString('es-CL')}</span>
+                    </div>
+                    <hr className="border-green-200" />
+                    <div className="flex justify-between font-bold text-green-800">
+                      <span>Total a pagar:</span>
+                      <span>${finalAmount.toLocaleString('es-CL')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="mt-3 border-t pt-3 flex justify-between font-bold text-lg text-red-700">
-              <span>Total:</span>
-              <span>${totalCLP.toLocaleString('es-CL')}</span>
+              <span>Total{isFrequentUser && order.status === 'Listo' && !order.paid ? ' con descuento' : ''}:</span>
+              <span>${(isFrequentUser && order.status === 'Listo' && !order.paid ? finalAmount : totalCLP).toLocaleString('es-CL')}</span>
             </div>
           </div>
 
