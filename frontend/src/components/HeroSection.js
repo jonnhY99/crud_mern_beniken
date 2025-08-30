@@ -5,22 +5,23 @@ import { Eye, MessageCircle, Check } from 'lucide-react';
 const HeroSection = () => {
   return (
     <section id="inicio" className="relative min-h-screen flex items-center overflow-hidden -mt-24 pt-20 pb-4">
-      {/* Background Video */}
+      {/* Background Video with Mobile Fallback */}
       <div className="absolute inset-0 z-0">
-        {/* Mobile Video - Proper Aspect Ratio */}
+        {/* Mobile: Use static background image as fallback */}
         <div className="block sm:hidden absolute inset-0 w-full h-full">
           <div 
-            className="w-full h-full bg-cover bg-center bg-no-repeat relative"
+            className="w-full h-full bg-cover bg-center bg-no-repeat"
             style={{
-              aspectRatio: '16/9'
+              backgroundImage: 'url("image/carne_de_vacuno.png")',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
             }}
           >
+            {/* Try to load video, but don't break if it fails */}
             <iframe
               src="https://player.cloudinary.com/embed/?cloud_name=dyeotzjo8&public_id=kling_20250828_Image_to_Video__3129_0_kqksco&profile=carne2"
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+              className="w-full h-full opacity-90"
               style={{ 
-                width: 'max(100vw, 177.78vh)',
-                height: 'max(100vh, 56.25vw)',
                 border: 'none',
                 pointerEvents: 'none'
               }}
@@ -28,6 +29,9 @@ const HeroSection = () => {
               allowFullScreen
               frameBorder="0"
               title="Carnicería Beniken - Video móvil"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
             />
           </div>
         </div>

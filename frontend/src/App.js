@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
+import ErrorBoundary from './components/ErrorBoundary.js';
 import LayoutHeader from './components/HeaderLayout.js';
 import ProductList from './components/ProductList.js';
 import CartItem from './components/CartItem.js';
@@ -41,6 +42,7 @@ const App = () => {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState(() => createStorage('cart', []));
   const [allOrders, setAllOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(() => {
     try {
       const savedUser = localStorage.getItem('user');
@@ -68,8 +70,32 @@ const App = () => {
 
   // 🔹 cargar productos y pedidos
   useEffect(() => {
-    fetchProducts().then(setProducts).catch((e) => console.error('fetchProducts error:', e));
-    fetchOrders().then(setAllOrders).catch((e) => console.error('fetchOrders error:', e));
+    const loadData = async () => {
+      try {
+        const [productsData, ordersData] = await Promise.allSettled([
+          fetchProducts(),
+          fetchOrders()
+        ]);
+        
+        if (productsData.status === 'fulfilled') {
+          setProducts(productsData.value);
+        } else {
+          console.error('fetchProducts error:', productsData.reason);
+        }
+        
+        if (ordersData.status === 'fulfilled') {
+          setAllOrders(ordersData.value);
+        } else {
+          console.error('fetchOrders error:', ordersData.reason);
+        }
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
   }, []);
 
   // 🔹 socket
@@ -237,17 +263,26 @@ const App = () => {
   const isButcher = user?.role === 'carniceria';
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* ✅ Header con carrito */}
-      <LayoutHeader
-        user={user}
-        onLogout={handleLogout}
-        cartCount={cart.length}
-      />
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-100 flex flex-col">
+        {/* ✅ Header con carrito */}
+        <LayoutHeader
+          user={user}
+          onLogout={handleLogout}
+          cartCount={cart.length}
+        />
 
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<><HeroSection /><ProductsPreview products={products} /><Categories /><WhyChooseUs /><div className="container mx-auto p-6"><TestimonialsSection /><GallerySection /></div></>} />
+        <main className="flex-1">
+          {loading ? (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 text-lg">Cargando Carnes Beniken...</p>
+              </div>
+            </div>
+          ) : (
+            <Routes>
+              <Route path="/" element={<><HeroSection /><ProductsPreview products={products} /><Categories /><WhyChooseUs /><div className="container mx-auto p-6"><TestimonialsSection /><GallerySection /></div></>} />
           <Route path="/login" element={<div className="container mx-auto p-6 pt-24"><LoginForm onLoginSuccess={(u) => { setUser(u); navigate('/'); }} /></div>} />
 
           {/* 🔹 Carrito */}
@@ -301,14 +336,16 @@ const App = () => {
           <Route path="/usuarios" element={<div className="container mx-auto p-6 pt-24">{isAdmin ? <Usuarios /> : <p className="text-center text-red-600">No tienes permisos para ver esta sección.</p>}</div>} />
           <Route path="/productos" element={<div className="container mx-auto p-6 pt-24"><ProductList products={products} onAddToCart={handleAddToCart} onProductsUpdate={() => fetchProducts().then(setProducts)} /></div>} />
           <Route path="/payweb" element={<div className="container mx-auto p-6 pt-24"><PayWeb /></div>} />
-        </Routes>
-      </main>
+            </Routes>
+          )}
+        </main>
 
       <LayoutFooter />
       
       {/* Chatbot global popup */}
       <ChatBot />
     </div>
+    </ErrorBoundary>
   );
 };
 

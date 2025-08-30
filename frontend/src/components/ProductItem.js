@@ -35,80 +35,82 @@ const ProductItem = ({ product, onAddToCart, onEditProduct }) => {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
+    <div className="bg-white shadow-md rounded-lg p-4 sm:p-6">
       <img
         src={product.image}
         alt={product.name}
-        className="w-full h-48 object-cover rounded-md mb-4"
+        className="w-full h-40 sm:h-48 object-cover rounded-md mb-3 sm:mb-4"
         loading="lazy"
-        onError={(e) => { e.currentTarget.src = '/images/placeholder.png'; }}
+        onError={(e) => { 
+          e.currentTarget.src = '/image/placeholder.svg';
+          e.currentTarget.onerror = null; // Prevent infinite loop
+        }}
       />
 
-      <h3 className="text-xl font-semibold mb-1">{product.name}</h3>
-      <p className="text-gray-600 text-sm mb-2">{product.description}</p>
+      <h3 className="text-lg sm:text-xl font-semibold mb-1">{product.name}</h3>
+      <p className="text-gray-600 text-xs sm:text-sm mb-2 line-clamp-2">{product.description}</p>
 
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-red-600 font-bold text-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-1 sm:gap-0">
+        <span className="text-red-600 font-bold text-lg sm:text-xl">
           {formatCLP(product.price)}/{product.unit}
         </span>
-        <span className="text-gray-500 text-sm">Stock: {Math.round(product.stock || 0)}</span>
-      </div>
-      
-      {/* Estimated Price Display */}
-      <div className="bg-gray-50 p-3 rounded-lg mb-4">
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">Precio estimado:</span>
-          <span className="text-lg font-bold text-green-600">
-            {formatCLP(estimatedPrice)}
-          </span>
-        </div>
-        <div className="text-xs text-gray-500 mt-1">
-          {quantity} {product.unit} × {formatCLP(product.price)}
-        </div>
+        <span className="text-gray-500 text-xs sm:text-sm">Stock: {Math.round(product.stock || 0)}</span>
       </div>
 
-      <div className="flex items-center space-x-3">
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-600 mb-1">Cantidad ({product.unit})</label>
+      {/* Quantity selector and estimated price - Mobile optimized */}
+      <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-3">
+        <div className="flex-1">
+          <label className="text-xs text-gray-600 mb-1 block">Cantidad ({product.unit})</label>
           <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
             {/* Botón decrementar */}
             <button
               type="button"
               onClick={decrementQuantity}
-              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors focus:outline-none focus:bg-gray-200"
+              className="px-2 sm:px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors touch-manipulation"
             >
-              <Minus className="w-4 h-4" />
+              <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
             
             {/* Input de cantidad */}
             <input
               type="number"
-              min="0.1"
-              step="0.1"
               value={quantity}
               onChange={handleQuantityChange}
-              className="w-20 px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-red-500 border-0"
-              placeholder="0.5"
+              step="0.1"
+              min="0.1"
+              className="w-12 sm:w-16 px-1 sm:px-2 py-2 text-center text-sm border-0 focus:outline-none focus:ring-0"
             />
             
             {/* Botón incrementar */}
             <button
               type="button"
               onClick={incrementQuantity}
-              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors focus:outline-none focus:bg-gray-200"
+              className="px-2 sm:px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors touch-manipulation"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>
-        <button
-          onClick={handleAdd}
-          disabled={quantity <= 0}
-          className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          Agregar al Carrito
-        </button>
+
+        {/* Estimated price display */}
+        <div className="flex-1 sm:flex-initial">
+          <label className="text-xs text-gray-600 mb-1 block">Precio estimado</label>
+          <span className="text-base sm:text-lg font-bold text-green-600 block">
+            {formatCLP(estimatedPrice)}
+          </span>
+        </div>
       </div>
+
+      {/* Add to cart button */}
+      <button
+        onClick={handleAdd}
+        disabled={quantity <= 0 || (product.stock && quantity > product.stock)}
+        className="w-full mt-3 sm:mt-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 sm:py-3 px-4 rounded-lg transition-colors duration-200 text-sm sm:text-base touch-manipulation"
+      >
+        {quantity <= 0 ? 'Selecciona cantidad' : 
+         (product.stock && quantity > product.stock) ? 'Stock insuficiente' : 
+         'Agregar al carrito'}
+      </button>
 
       {/* Admin Edit Button */}
       {user && user.role === 'admin' && onEditProduct && (
