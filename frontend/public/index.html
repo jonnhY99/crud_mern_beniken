@@ -14,19 +14,20 @@
     <!-- Manifest -->
     <link rel="manifest" href="/manifest.json">
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS será incluido por el build process -->
   </head>
   <body>
     <div id="root"></div>
 
-    <!-- Registro Service Worker -->
+    <!-- Registro Service Worker optimizado -->
     <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker
-          .register("/service-worker.js")
-          .then(() => console.log("Service Worker registrado"))
-          .catch((err) => console.error("Error registrando SW:", err));
+      if ("serviceWorker" in navigator && "production" === "%NODE_ENV%") {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/service-worker.js")
+            .then(() => console.log("Service Worker registrado"))
+            .catch((err) => console.error("Error registrando SW:", err));
+        });
       }
     </script>
   </body>
