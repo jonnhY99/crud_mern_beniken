@@ -1,9 +1,11 @@
 // src/components/CustomerForm.js
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
 import { useToast } from '../context/ToastContext';
 
 const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -128,13 +130,12 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
         }
       }
 
-      // Redirect to payment selection
-      navigate(`/payment/${customerData.id}`);
+      // Call the onSubmit prop to create the order
+      onSubmit(customerData);
     } catch (error) {
-      console.error('Error creating order:', error);
-      alert('Error al crear el pedido. Por favor, inténtalo de nuevo.');
-    } finally {
-      // setLoading(false);
+      console.error('Error registering purchase:', error);
+      // Continue with order creation even if purchase registration fails
+      onSubmit(customerData);
     }
   };
 
