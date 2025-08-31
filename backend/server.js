@@ -23,11 +23,15 @@ const server = http.createServer(app);
 app.set('trust proxy', true);
 
 // ===== CORS =====
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000,http://192.168.0.14:3000,http://192.168.0.14:3001,http://192.168.0.14:3002')
   .split(',')
   .map((s) => s.trim());
 
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cors({ 
+  origin: allowedOrigins, 
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+}));
 app.use(express.json());
 
 // ===== Healthcheck =====
@@ -35,7 +39,12 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 // ===== Socket.IO =====
 const io = new Server(server, {
-  cors: { origin: allowedOrigins, methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'] },
+  cors: { 
+    origin: allowedOrigins, 
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    credentials: true
+  },
+  transports: ['websocket', 'polling']
 });
 
 // Cada socket se une a una "room" con el id de usuario (envíalo desde el frontend en handshake.auth.userId)
@@ -79,9 +88,11 @@ mongoose
   .connect(MONGODB_URI, { serverSelectionTimeoutMS: 8000, autoIndex: true })
   .then(() => {
     console.log('✅ MongoDB conectado');
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
       console.log(`🔗 CORS permitido: ${allowedOrigins.join(', ')}`);
+      console.log(`📱 Acceso LAN: http://192.168.0.14:${PORT}`);
+      console.log(`🌐 Frontend LAN: http://192.168.0.14:3000`);
     });
   })
   .catch((err) => {

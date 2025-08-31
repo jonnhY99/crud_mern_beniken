@@ -20,6 +20,7 @@
     "jspdf": "^3.0.2",
     "jsqr": "^1.4.0",
     "lucide-react": "^0.540.0",
+    "ngrok": "^5.0.0-beta.2",
     "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -34,6 +35,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "ngrok": "ngrok http 3000",
+    "start:lan": "cross-env HOST=0.0.0.0 react-scripts start",
     "start:win": "node start-frontend.js",
     "build": "react-scripts build",
     "build:prod": "npm run build",
