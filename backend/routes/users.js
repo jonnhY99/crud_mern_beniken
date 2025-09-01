@@ -1,4 +1,3 @@
-// routes/users.js
 import express from 'express';
 import {
   registerUser,
@@ -6,40 +5,23 @@ import {
   getUsers,
   getLoginLogs,
   updateUser,
-  deleteUser, // 👈 ahora sí está en userController.js
-  registerPurchase,
-  checkFrequentUser,
-  getFrequentUsers
+  deleteUser,
+  getFrequentUsers,
+  checkFrequentUser
 } from '../controllers/userController.js';
+
 import { verifyToken, requireRole } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Registrar un nuevo usuario
 router.post('/register', registerUser);
-
-// Login de usuario
 router.post('/login', loginUser);
-
-// Registrar compra
-router.post('/purchase', registerPurchase);
-
-// Verificar si usuario es frecuente
-router.get('/check-frequent/:email', checkFrequentUser);
-
-// Obtener usuarios frecuentes
-router.get('/frequent', verifyToken, requireRole('admin'), getFrequentUsers);
-
-// Listar todos los usuarios (solo admin)
-router.get('/', verifyToken, requireRole('admin'), getUsers);
-
-// Obtener logs de login
-router.get('/login-logs', verifyToken, requireRole('admin'), getLoginLogs);
-
-// Actualizar usuario
-router.put('/:id', verifyToken, requireRole('admin'), updateUser);
-
-// Eliminar usuario
-router.delete('/:id', verifyToken, requireRole('admin'), deleteUser);
+router.get('/list', verifyToken, requireRole(['admin']), getUsers);
+router.get('/logs', verifyToken, requireRole(['admin']), getLoginLogs);
+router.put('/:id', verifyToken, requireRole(['admin']), updateUser);
+router.delete('/:id', verifyToken, requireRole(['admin']), deleteUser);
+router.get('/frequent', verifyToken, requireRole(['admin']), getFrequentUsers);
+router.post('/check-frequent', checkFrequentUser);
 
 export default router;
+

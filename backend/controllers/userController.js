@@ -1,22 +1,16 @@
-// controllers/userController.js
 import User from '../models/User.js';
 import LoginLog from '../models/LoginLog.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { encrypt } from '../config/encryption.js'; // Asegúrate que este path sea correcto
+import { encrypt } from '../config/encryption.js';
 
-// 🔑 Función para hashear valores sensibles
 function hashValue(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
-// =========================
-// Registrar usuario
-// =========================
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password, role, isFrequent } = req.body;
-
     const encryptedName = encrypt(name);
     const encryptedEmail = encrypt(email);
 
@@ -58,9 +52,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// =========================
-// Login usuario
-// =========================
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -81,7 +72,6 @@ export const loginUser = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    // Guardar log
     const log = new LoginLog({ userId: user._id, email: email });
     await log.save();
 
@@ -101,9 +91,6 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// =========================
-// Actualizar usuario (solo admin)
-// =========================
 export const updateUser = async (req, res) => {
   try {
     const { name, email, role, password, isFrequent } = req.body;
@@ -125,7 +112,7 @@ export const updateUser = async (req, res) => {
 
     if (role) user.role = role;
     if (typeof isFrequent !== 'undefined') user.isFrequent = isFrequent;
-    if (password && password.trim() !== '') user.password = password; // se cifra en pre('save')
+    if (password && password.trim() !== '') user.password = password;
 
     const updatedUser = await user.save();
     res.json(updatedUser);
@@ -134,12 +121,6 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// El resto del archivo (getUsers, getLoginLogs, deleteUser, etc.) no requiere cambios relacionados con el cifrado, por lo que puedes dejarlo tal como ya lo tenías.
-
-
-// =========================
-// Eliminar usuario (solo admin)
-// =========================
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -152,14 +133,48 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// =========================
-// Obtener usuarios frecuentes
-// =========================
+export const getUsers = async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error al obtener usuarios', error: error.message });
+  }
+};
+
+export const getLoginLogs = async (req, res) => {
+  try {
+    const logs = await LoginLog.find().populate('userId', 'name email');
+    res.json({ success: true, logs });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error al obtener logs', error: error.message });
+  }
+};
+
 export const getFrequentUsers = async (req, res) => {
   try {
     const users = await User.find({ isFrequent: true, role: 'cliente' }).select('-password');
     res.json({ success: true, users });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error al obtener usuarios frecuentes', error: error.message });
+  }
+};
+
+export const checkFrequentUser = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const emailHash = hashValue(email);
+    const user = await User.findOne({ emailHash });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+
+    res.json({
+      success: true,
+      isFrequent: user.isFrequent,
+      role: user.role,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error al verificar usuario frecuente', error: error.message });
   }
 };
