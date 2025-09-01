@@ -48,7 +48,9 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
       // Check if user is frequent when order is loaded (using name + email)
       if (data?.customerEmail && data?.customerName) {
         try {
-          const response = await apiFetch(`/api/users/check-frequent/${encodeURIComponent(data.customerEmail)}?name=${encodeURIComponent(data.customerName)}`);
+          const response = await apiFetch(
+            `/api/users/check-frequent/${encodeURIComponent(data.customerEmail)}?name=${encodeURIComponent(data.customerName)}`
+          );
           setIsFrequentUser(response.isFrequent);
           setFrequentUserInfo(response);
         } catch (error) {
@@ -67,31 +69,27 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
     load();
   }, [orderId]);
 
-  // escuchar actualizaciones por socket (incluyendo cambios de precio del carnicero)
+  // escuchar actualizaciones por socket
   useEffect(() => {
     const s = getSocket();
     if (!s) return;
     
     const onUpdated = (updated) => {
       if (updated?.id === orderId || updated?._id === orderId) {
-        // Actualizar inmediatamente cuando el carnicero modifica pesos/precios
         setOrder(updated);
-        // Reiniciar contador si hay cambios
         setSeconds(15);
       }
     };
     
-    // Escuchar eventos específicos del carnicero
     const onButcherUpdate = (data) => {
       if (data?.orderId === orderId) {
-        // Actualizar orden con nuevos precios/pesos
         setOrder(prev => ({
           ...prev,
           items: data.items || prev.items,
           totalCLP: data.newTotal || prev.totalCLP,
           status: data.status || prev.status
         }));
-        setSeconds(15); // Reiniciar contador
+        setSeconds(15);
       }
     };
     
@@ -120,7 +118,7 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
       setSeconds((s) => {
         if (s <= 1) {
           load();
-          return 15; // reiniciar contador
+          return 15;
         }
         return s - 1;
       });
@@ -128,26 +126,27 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
     return () => clearInterval(timer);
   }, [order]);
 
+  // ✅ prettyMsg alineado con el nuevo flujo de pago
   const prettyMsg = useMemo(() => {
     const st = order?.status || 'Pendiente';
+
     if (st === 'Listo') {
       if (order?.paid) {
         return '¡Tu pedido está listo para retiro! Usa el código QR para retirar tu pedido.';
+      } else if (!order?.paymentMethod) {
+        return '¡Tu pedido está listo! Ahora selecciona tu método de pago con el botón "Ir a Pagar".';
       } else if (order?.paymentMethod === 'local') {
         return '¡Tu pedido está listo para retiro! Recuerda llevar el dinero para pagar en la tienda.';
-      } else if (order?.receiptData?.validationStatus === 'pending') {
+      } else if (order?.paymentMethod === 'transfer' && order?.receiptData?.validationStatus === 'pending') {
         return 'Tu pedido está listo, pero estamos validando tu comprobante de transferencia.';
-      } else if (order?.receiptData?.validationStatus === 'rejected') {
+      } else if (order?.paymentMethod === 'transfer' && order?.receiptData?.validationStatus === 'rejected') {
         return 'Tu pedido está listo, pero necesitas subir un nuevo comprobante de transferencia.';
       }
-      return '¡Tu pedido está listo! Ya puedes pasar a pagar.';
+      return '¡Tu pedido está listo! Pasa a la tienda para pagar y retirar tu pedido.';
     }
+
     if (st === 'Entregado') return 'Pedido entregado. ¡Gracias por tu compra!';
-    
-    // Durante la preparación NO mostrar mensajes de validación
-    // Los mensajes de validación solo aparecen cuando el pedido está 'Listo'
-    
-    // Mensaje por defecto durante preparación
+
     return 'Tu pedido está en preparación, la carnicería está ajustando los montos según el peso real, esto puede variar entre más o menos gramos.';
   }, [order?.status, order?.paymentMethod, order?.paid, order?.receiptData]);
 
@@ -164,7 +163,7 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
     return `$${Math.round(value).toLocaleString('es-CL')}`;
   };
 
-  // Calculate discount for frequent users (5% discount)
+  // descuento cliente frecuente
   const discountPercentage = isFrequentUser ? 5 : 0;
   const discountAmount = Math.round((totalCLP * discountPercentage) / 100);
   const finalAmount = totalCLP - discountAmount;
@@ -180,7 +179,6 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
       )}
 
       {err && <div className="bg-red-50 text-red-700 p-3 rounded mb-4">{err}</div>}
-
       {loading && <p className="text-center">Cargando…</p>}
 
       {order && (
@@ -199,25 +197,25 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
                   </span>
                 )}
               </div>
-            ) : (order.receiptData && order.receiptData.validationStatus === 'pending' && order.status === 'Listo' && order.receiptData.uploadedAt) ? (
-              <div className="bg-blue-100 text-blue-800 p-3 rounded mb-4 text-center font-semibold">
-                📄 Tu comprobante está siendo revisado por la carnicería. Te notificaremos cuando sea validado.
+            ) : order.status === 'Listo' && !order.paymentMethod ? (
+              <div className="bg-green-100 text-green-800 p-3 rounded mb-4 text-center font-semibold">
+                ✅ Tu pedido está listo, ahora puedes pagar
                 <span className="block text-sm mt-1">
-                🔍 Tu pedido está listo y ajustado por la carniceria, ahora puedes pasar a pagar.
+                  💳 Selecciona tu método de pago preferido usando el botón <strong>Ir a Pagar</strong>
                 </span>
               </div>
-            ) : (order.receiptData && order.receiptData.validationStatus === 'rejected' && order.status === 'Listo' && order.receiptData.uploadedAt) ? (
+            ) : (order.paymentMethod === 'transfer' && order.receiptData?.validationStatus === 'pending' && order.status === 'Listo' && order.receiptData?.uploadedAt) ? (
+              <div className="bg-blue-100 text-blue-800 p-3 rounded mb-4 text-center font-semibold">
+                🔍 Tu pedido está listo, pero estamos validando tu comprobante de transferencia.
+                <span className="block text-sm mt-1">
+                  📄 Tu comprobante está siendo revisado por la carnicería. Te notificaremos cuando sea validado.
+                </span>
+              </div>
+            ) : (order.paymentMethod === 'transfer' && order.receiptData?.validationStatus === 'rejected' && order.status === 'Listo' && order.receiptData?.uploadedAt) ? (
               <div className="bg-red-100 text-red-800 p-3 rounded mb-4 text-center font-semibold">
                 ❌ Transferencia rechazada
                 <span className="block text-sm mt-1">
                   {order.receiptData.validationNotes || 'Contacta con la carnicería para más información'}
-                </span>
-              </div>
-            ) : order.status === 'Listo' ? (
-              <div className="bg-green-100 text-green-800 p-3 rounded mb-4 text-center font-semibold">
-                ✅ Tu pedido está listo, ahora puedes pagar
-                <span className="block text-sm mt-1">
-                  💳 Selecciona tu método de pago preferido
                 </span>
               </div>
             ) : (
@@ -279,7 +277,7 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
                 </li>
               ))}
             </ul>
-            {/* Show discount breakdown for frequent users when ready to pay */}
+
             {isFrequentUser && order.status === 'Listo' && !order.paid && (
               <div className="mt-3 border-t pt-3">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
@@ -311,7 +309,6 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
 
           {/* Botones */}
           <div className="flex justify-center gap-3">
-            {/* Mostrar QR cuando esté listo y pagado */}
             {order.status === 'Listo' && order.paid && (
               <button
                 className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
@@ -321,7 +318,6 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
               </button>
             )}
             
-            {/* Botones de pago cuando está listo pero no pagado */}
             {order.status === 'Listo' && !order.paid && (
               order.paymentMethod === 'local' ? (
                 <button
@@ -364,7 +360,6 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
         </>
       )}
       
-      {/* QR Modal */}
       {showQR && order && (
         <OrderQRCode 
           order={order} 
