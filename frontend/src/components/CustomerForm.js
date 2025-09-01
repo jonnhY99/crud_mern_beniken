@@ -1,11 +1,9 @@
 // src/components/CustomerForm.js
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../utils/api';
 import { useToast } from '../context/ToastContext';
 
 const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
-  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -17,41 +15,45 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
   const [frequentUserInfo, setFrequentUserInfo] = useState(null);
   const [isCheckingFrequent, setIsCheckingFrequent] = useState(false);
   const { addToast } = useToast();
-  
-  // Check if delivery is available (minimum 100,000 CLP)
+
+  // 🚚 Despacho solo si el total >= 100.000 CLP
   const isDeliveryAvailable = totalAmount >= 100000;
 
-  // Validation functions
-  const validateName = (name) => {
-    // Allow any name with letters, spaces, accents, hyphens, apostrophes
-    const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$/;
-    return name.trim().length >= 2 && nameRegex.test(name.trim());
-  };
+  // ✅ Validaciones
+  const validateName = (n) =>
+    /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$/.test(n.trim()) && n.trim().length >= 2;
 
-  const validateEmail = (email) => {
-    // More flexible email validation allowing various domains and special characters
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailRegex.test(email.trim());
-  };
+  const validateEmail = (e) =>
+    /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(e.trim());
 
-  const validatePhone = (phone) => {
-    // Chilean phone format: +569 followed by 8 digits
-    const phoneRegex = /^\+569[0-9]{8}$/;
-    return phoneRegex.test(phone.trim());
-  };
+  const validatePhone = (p) => /^\+569[0-9]{8}$/.test(p.trim());
 
-  // Check if user is frequent when email and name are available
+  // 🔍 Verificar cliente frecuente con debounce
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (validateEmail(email) && validateName(name)) {
+        checkFrequentUser(email, name);
+      }
+    }, 600);
+    return () => clearTimeout(handler);
+  }, [email, name]);
+
   const checkFrequentUser = async (email, userName) => {
-    if (!validateEmail(email) || !userName || userName.trim().length < 2) return;
-    
     setIsCheckingFrequent(true);
     try {
-      const response = await apiFetch(`/api/users/check-frequent/${encodeURIComponent(email)}?name=${encodeURIComponent(userName.trim())}`);
+      const response = await apiFetch(
+        `/api/users/check-frequent/${encodeURIComponent(email)}?name=${encodeURIComponent(
+          userName.trim()
+        )}`
+      );
       setIsFrequentUser(response.isFrequent);
       setFrequentUserInfo(response);
-      
+
       if (response.isFrequent) {
-        addToast(`🎉 ¡Hola ${response.name || response.user?.name}! Eres cliente frecuente con ${response.purchases} compras. Tendrás 5% de descuento al pagar.`, 'success');
+        addToast(
+          `🎉 ¡Hola ${response.name || response.user?.name}! Eres cliente frecuente con ${response.purchases} compras.`,
+          'success'
+        );
       }
     } catch (error) {
       console.warn('Error checking frequent user:', error);
@@ -60,140 +62,83 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
     }
   };
 
-  // Calculate discount and final amount (5% for frequent users)
+  // 🎉 Descuento automático
   const discountPercentage = isFrequentUser ? 5 : 0;
   const discountAmount = (totalAmount * discountPercentage) / 100;
   const finalAmount = totalAmount - discountAmount;
 
+  // ✅ Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate individual fields
-    if (!validateName(name)) {
-      addToast('Por favor, ingresa un nombre válido (mínimo 2 caracteres, solo letras).', 'error');
-      return;
-    }
+    if (!validateName(name)) return addToast('Nombre inválido.', 'error');
+    if (!validateEmail(email)) return addToast('Correo inválido.', 'error');
+    if (!validatePhone(phone)) return addToast('Teléfono inválido.', 'error');
+    if (isDelivery && !deliveryAddress.trim())
+      return addToast('Debes ingresar dirección.', 'error');
 
-    if (!validateEmail(email)) {
-      addToast('Por favor, ingresa un correo electrónico válido.', 'error');
-      return;
-    }
-
-    if (!validatePhone(phone)) {
-      addToast('Por favor, ingresa un teléfono válido con formato +569XXXXXXXX', 'error');
-      return;
-    }
-
-    if (isDelivery && !deliveryAddress.trim()) {
-      addToast('Por favor, ingresa una dirección de despacho.', 'error');
-      return;
-    }
-
-    if (!isDelivery && !pickupTime) {
-      addToast('Por favor, selecciona una hora de recogida.', 'error');
-      return;
-    }
-
-    // All validations passed - proceed with order
-    const customerData = { 
-      name, 
-      phone, 
-      email, 
-      pickupTime: isDelivery ? null : pickupTime, 
+    const customerData = {
+      name,
+      email,
+      phone,
+      pickupTime: isDelivery ? null : pickupTime,
       note,
       isDelivery,
-      deliveryAddress: isDelivery ? deliveryAddress : null
+      deliveryAddress: isDelivery ? deliveryAddress : null,
     };
 
     try {
-      // Registrar compra para usuario frecuente y guardar datos del cliente
-      if (email && name) {
-        try {
-          await apiFetch('/api/users/purchase', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: email,
-              name: name,
-              phone: phone
-            })
-          });
-          
-          // Guardar datos del cliente para el tracker de múltiples pedidos
-          localStorage.setItem('customerData', JSON.stringify({
-            email: email,
-            name: name,
-            phone: phone
-          }));
-        } catch (error) {
-          console.warn('Error registering purchase:', error);
-        }
-      }
+      await apiFetch('/api/users/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customerData),
+      });
 
-      // Call the onSubmit prop to create the order
-      onSubmit(customerData);
+      // Guardar en localStorage (puedes cifrarlo si quieres mayor seguridad)
+      localStorage.setItem('customerData', JSON.stringify(customerData));
     } catch (error) {
-      console.error('Error registering purchase:', error);
-      // Continue with order creation even if purchase registration fails
-      onSubmit(customerData);
+      console.warn('Error registrando compra:', error);
     }
+
+    onSubmit(customerData);
   };
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-lg mb-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">
-        Datos del Cliente y Recogida
-      </h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Datos del Cliente y Recogida</h2>
 
+      {/* Nombre */}
       <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-1">
-          Nombre Completo:
-        </label>
+        <label className="block text-gray-700 font-bold mb-1">Nombre Completo:</label>
         <input
           type="text"
           value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-            // Check for frequent user when both name and email are available
-            if (e.target.value.trim().length >= 2 && email && validateEmail(email)) {
-              setTimeout(() => checkFrequentUser(email, e.target.value), 500);
-            }
-          }}
+          onChange={(e) => setName(e.target.value)}
           className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
           placeholder="Ej. Juan Pérez González"
           required
         />
       </div>
 
+      {/* Correo */}
       <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-1">
-          Correo Electrónico:
-        </label>
+        <label className="block text-gray-700 font-bold mb-1">Correo Electrónico:</label>
         <input
           type="email"
           value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            // Check for frequent user when both email and name are available
-            if (e.target.value.includes('@') && e.target.value.includes('.') && name && name.trim().length >= 2) {
-              setTimeout(() => checkFrequentUser(e.target.value, name), 500);
-            }
-          }}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          placeholder="Ej. usuario@gmail.com, correo@empresa.cl"
+          placeholder="Ej. usuario@gmail.com"
           required
         />
         {isCheckingFrequent && (
-          <p className="text-blue-500 text-xs mt-1">
-            🔍 Verificando si eres cliente frecuente...
-          </p>
+          <p className="text-blue-500 text-xs mt-1">🔍 Verificando si eres cliente frecuente...</p>
         )}
       </div>
 
+      {/* Teléfono */}
       <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-1">
-          Teléfono:
-        </label>
+        <label className="block text-gray-700 font-bold mb-1">Teléfono:</label>
         <input
           type="tel"
           value={phone}
@@ -202,12 +147,10 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
           placeholder="Ej. +56912345678"
           required
         />
-        <p className="text-gray-500 text-xs mt-1">
-          *Formato: +569 seguido de 8 dígitos
-        </p>
+        <p className="text-gray-500 text-xs mt-1">*Formato: +569 seguido de 8 dígitos</p>
       </div>
 
-      {/* Delivery Option - Only show if total >= 100,000 CLP */}
+      {/* Delivery */}
       {isDeliveryAvailable && (
         <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-center mb-3">
@@ -215,30 +158,23 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
               type="checkbox"
               id="delivery"
               checked={isDelivery}
-              onChange={(e) => {
-                setIsDelivery(e.target.checked);
-                if (!e.target.checked) {
-                  setDeliveryAddress('');
-                }
-              }}
+              onChange={(e) => setIsDelivery(e.target.checked)}
               className="mr-3 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
             />
             <label htmlFor="delivery" className="text-green-700 font-bold">
               🚚 Despacho a Domicilio Disponible
             </label>
           </div>
-          
+
           {isDelivery && (
             <div>
-              <label className="block text-green-700 font-bold mb-1">
-                Dirección de Despacho:
-              </label>
+              <label className="block text-green-700 font-bold mb-1">Dirección de Despacho:</label>
               <input
                 type="text"
                 value={deliveryAddress}
                 onChange={(e) => setDeliveryAddress(e.target.value)}
                 className="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="Ej. Av. siempre viva 742, Springfield"
+                placeholder="Ej. Av. Siempre Viva 742, Springfield"
                 required={isDelivery}
               />
               <p className="text-green-600 text-sm mt-1">
@@ -248,13 +184,11 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
           )}
         </div>
       )}
-      
-      {/* Pickup Time - Only show if not delivery */}
+
+      {/* Hora de retiro */}
       {!isDelivery && (
         <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-1">
-            Hora de Recogida:
-          </label>
+          <label className="block text-gray-700 font-bold mb-1">Hora de Recogida:</label>
           <select
             value={pickupTime}
             onChange={(e) => setPickupTime(e.target.value)}
@@ -272,10 +206,9 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
         </div>
       )}
 
+      {/* Nota */}
       <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-1">
-          Notas Adicionales:
-        </label>
+        <label className="block text-gray-700 font-bold mb-1">Notas Adicionales:</label>
         <input
           type="text"
           value={note}
@@ -285,39 +218,15 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
         />
       </div>
 
-      {!isDelivery && (
-        <p className="text-gray-600 text-sm mb-4">
-          *Recuerda que el pedido es para retiro en Mercado Matadero Franklin, local 382, Santiago.
-        </p>
-      )}
-      
-      {isDelivery && (
-        <p className="text-green-600 text-sm mb-4">
-          *Tu pedido será despachado a la dirección indicada entre las 14:00 y 18:00 hrs.
-        </p>
-      )}
-      
-      {/* Frequent User Info (without showing discount amount) */}
+      {/* Info frecuente */}
       {isFrequentUser && totalAmount > 0 && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
           <h3 className="text-green-800 font-bold mb-2">🎉 ¡Cliente Frecuente!</h3>
           <p className="text-green-700 text-sm">
-            Tendrás un <strong>5% de descuento</strong> aplicado automáticamente al momento del pago final.
+            Tendrás un <strong>5% de descuento</strong> aplicado automáticamente al pagar.
           </p>
         </div>
       )}
-
-      {!isDeliveryAvailable && totalAmount > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-          <p className="text-yellow-700 text-sm">
-            💡 <strong>¡Tip!</strong> Agrega ${Math.round(100000 - totalAmount)} más a tu compra para habilitar el despacho a domicilio.
-          </p>
-        </div>
-      )}
-      
-      <p className="text-gray-600 text-sm mb-4">
-        *Si tienes dudas, contáctanos al +56933997*** o por correo carnes@beniken.com
-      </p>
 
       <button
         type="submit"

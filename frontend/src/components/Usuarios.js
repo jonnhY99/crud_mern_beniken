@@ -23,45 +23,42 @@ const Usuarios = () => {
   });
   const { addToast } = useToast();
 
-  // 🔹 Función para cargar usuarios frecuentes
+  // ✅ Validaciones básicas
+  const validateEmail = (email) =>
+    /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim());
+
+  const validateName = (name) =>
+    /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$/.test(name.trim()) && name.trim().length >= 2;
+
+  // 🔹 Cargar usuarios frecuentes
   const fetchFrequentUsers = async () => {
     try {
       const data = await getFrequentUsers();
-      // El backend retorna { success: true, users: [...] }
-      setFrecuentes(Array.isArray(data) ? data : (data?.users || []));
+      setFrecuentes(Array.isArray(data) ? data : data?.users || []);
     } catch {
-      addToast("Error cargando frecuentes", "error");
-      setFrecuentes([]); // Fallback seguro
+      addToast("Error cargando usuarios frecuentes", "error");
+      setFrecuentes([]);
     }
   };
 
-  // 🔹 Cargar usuarios normales al montar
+  // 🔹 Cargar todos los usuarios
   useEffect(() => {
     getUsers()
       .then((data) => {
-        // Validación defensiva para usuarios normales también
-        setUsuarios(Array.isArray(data) ? data : (data?.users || []));
+        setUsuarios(Array.isArray(data) ? data : data?.users || []);
       })
       .catch(() => {
         addToast("Error cargando usuarios", "error");
-        setUsuarios([]); // Fallback seguro
+        setUsuarios([]);
       });
   }, []);
 
-  // 🔹 Cargar usuarios frecuentes al montar
+  // 🔹 Cargar frecuentes + escuchar eventos globales
   useEffect(() => {
     fetchFrequentUsers();
-
-    // Escuchar el evento global desde CustomerForm
-    const handleUpdate = () => {
-      fetchFrequentUsers();
-    };
+    const handleUpdate = () => fetchFrequentUsers();
     window.addEventListener("userFrequentUpdated", handleUpdate);
-
-    // Limpiar al desmontar
-    return () => {
-      window.removeEventListener("userFrequentUpdated", handleUpdate);
-    };
+    return () => window.removeEventListener("userFrequentUpdated", handleUpdate);
   }, []);
 
   const handleEditar = (usuario) => {
@@ -89,23 +86,27 @@ const Usuarios = () => {
   };
 
   const handleGuardar = async () => {
+    if (!validateName(formData.name)) {
+      addToast("Nombre inválido", "error");
+      return;
+    }
+    if (!validateEmail(formData.email)) {
+      addToast("Correo inválido", "error");
+      return;
+    }
+
     try {
       if (editUser) {
         const actualizado = await updateUser(editUser._id, formData);
         setUsuarios(
           usuarios.map((u) => (u._id === editUser._id ? actualizado : u))
         );
-
-        // refrescar tabla de frecuentes
         await fetchFrequentUsers();
-
         addToast("Usuario actualizado correctamente");
       } else {
         const nuevo = await createUser(formData);
         setUsuarios([...usuarios, nuevo]);
-        if (nuevo.isFrequent) {
-          setFrecuentes([...frecuentes, nuevo]);
-        }
+        if (nuevo.isFrequent) setFrecuentes([...frecuentes, nuevo]);
         addToast("Usuario creado correctamente");
       }
       setIsModalOpen(false);
@@ -135,7 +136,7 @@ const Usuarios = () => {
       {/* Botón Crear Usuario */}
       <button
         onClick={handleCrear}
-        className="mb-4 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm sm:text-base touch-manipulation"
+        className="mb-4 px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm sm:text-base"
       >
         Crear Usuario
       </button>
@@ -155,20 +156,20 @@ const Usuarios = () => {
           <tbody>
             {(usuarios || []).map((usuario) => (
               <tr key={usuario._id} className="hover:bg-gray-100">
-                <td className="py-1 sm:py-2 px-2 sm:px-4 border-b truncate max-w-24 sm:max-w-none">{usuario.name}</td>
+                <td className="py-1 sm:py-2 px-2 sm:px-4 border-b truncate">{usuario.name}</td>
                 <td className="py-1 sm:py-2 px-2 sm:px-4 border-b hidden sm:table-cell truncate">{usuario.email}</td>
                 <td className="py-1 sm:py-2 px-2 sm:px-4 border-b">{usuario.role}</td>
                 <td className="py-1 sm:py-2 px-2 sm:px-4 border-b">
                   <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                     <button
                       onClick={() => handleEditar(usuario)}
-                      className="px-2 sm:px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm touch-manipulation"
+                      className="px-2 sm:px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm"
                     >
                       Editar
                     </button>
                     <button
                       onClick={() => handleEliminar(usuario._id)}
-                      className="px-2 sm:px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs sm:text-sm touch-manipulation"
+                      className="px-2 sm:px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs sm:text-sm"
                     >
                       Eliminar
                     </button>
@@ -194,19 +195,19 @@ const Usuarios = () => {
           <tbody>
             {(frecuentes || []).map((usuario) => (
               <tr key={usuario._id} className="hover:bg-gray-100">
-                <td className="py-1 sm:py-2 px-2 sm:px-4 border-b truncate max-w-24 sm:max-w-none">{usuario.name}</td>
+                <td className="py-1 sm:py-2 px-2 sm:px-4 border-b truncate">{usuario.name}</td>
                 <td className="py-1 sm:py-2 px-2 sm:px-4 border-b hidden sm:table-cell truncate">{usuario.email}</td>
                 <td className="py-1 sm:py-2 px-2 sm:px-4 border-b">
                   <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                     <button
                       onClick={() => handleEditar(usuario)}
-                      className="px-2 sm:px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm touch-manipulation"
+                      className="px-2 sm:px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm"
                     >
                       Editar
                     </button>
                     <button
                       onClick={() => handleEliminar(usuario._id)}
-                      className="px-2 sm:px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs sm:text-sm touch-manipulation"
+                      className="px-2 sm:px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs sm:text-sm"
                     >
                       Eliminar
                     </button>
@@ -218,7 +219,7 @@ const Usuarios = () => {
         </table>
       </div>
 
-      {/* Modal Crear/Editar - Mobile Responsive */}
+      {/* Modal Crear/Editar */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-md sm:w-96">
@@ -231,10 +232,9 @@ const Usuarios = () => {
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full p-2 border rounded"
+                required
               />
             </label>
 
@@ -243,10 +243,9 @@ const Usuarios = () => {
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full p-2 border rounded"
+                required
               />
             </label>
 
@@ -254,9 +253,7 @@ const Usuarios = () => {
               Rol:
               <select
                 value={formData.role}
-                onChange={(e) =>
-                  setFormData({ ...formData, role: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 className="w-full p-2 border rounded"
               >
                 <option value="admin">Admin</option>
@@ -270,33 +267,27 @@ const Usuarios = () => {
               <input
                 type="checkbox"
                 checked={formData.isFrequent}
-                onChange={(e) =>
-                  setFormData({ ...formData, isFrequent: e.target.checked })
-                }
+                onChange={(e) => setFormData({ ...formData, isFrequent: e.target.checked })}
                 className="ml-2"
               />
             </label>
 
-            {/* Solo mostrar contraseña si NO es usuario frecuente */}
             {!formData.isFrequent && (
               <label className="block mb-2">
                 Contraseña {editUser ? "(dejar vacío para no cambiar)" : ""}:
                 <input
                   type="password"
                   value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full p-2 border rounded"
                 />
               </label>
             )}
-            
-            {/* Mensaje informativo para usuarios frecuentes */}
+
             {formData.isFrequent && (
               <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-2">
                 <p className="text-blue-700 text-sm">
-                  💡 <strong>Usuario Frecuente:</strong> No requiere contraseña. Solo se usa para aplicar descuentos del 5% automáticamente.
+                  💡 <strong>Usuario Frecuente:</strong> Este estado también puede asignarse automáticamente por el sistema al registrar compras.
                 </p>
               </div>
             )}
