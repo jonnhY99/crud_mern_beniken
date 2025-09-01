@@ -11,7 +11,7 @@ const QRScanner = ({ onClose, onOrderFound }) => {
   const [cameraMode, setCameraMode] = useState(false);
   const [stream, setStream] = useState(null);
   const [lastQR, setLastQR] = useState(null);
-  const [detected, setDetected] = useState(false); // ✅ Para el marco verde
+  const [detected, setDetected] = useState(false); // ✅ Marco verde
 
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
@@ -72,10 +72,14 @@ const QRScanner = ({ onClose, onOrderFound }) => {
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         videoRef.current.setAttribute("playsinline", true);
-        videoRef.current.setAttribute("webkit-playsinline", true);
+        videoRef.current.setAttribute("webkit-playsinline", "true");
         videoRef.current.muted = true;
-        await videoRef.current.play();
-        startScanning();
+
+        // ✅ Esperar a que el video tenga dimensiones
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current.play().catch(() => {});
+          startScanning();
+        };
       }
     } catch (err) {
       console.error("Error al abrir cámara:", err);
@@ -227,6 +231,7 @@ const QRScanner = ({ onClose, onOrderFound }) => {
                 ref={videoRef}
                 autoPlay
                 playsInline
+                webkit-playsinline="true"
                 muted
                 className={`w-full h-full object-cover rounded transition-all duration-300 ${
                   detected ? "ring-4 ring-green-500" : "ring-2 ring-gray-300"
@@ -274,7 +279,7 @@ const QRScanner = ({ onClose, onOrderFound }) => {
       </div>
 
       {/* Audio para beep */}
-      <audio id="audioScaner" src="/public/beep.mp3" preload="auto" />
+      <audio id="audioScaner" src="/beep.mp3" preload="auto" />
     </div>
   );
 };

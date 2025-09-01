@@ -1,8 +1,11 @@
+// controllers/userController.js
 import User from '../models/User.js';
 import LoginLog from '../models/LoginLog.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { encrypt } from '../utils/encryption.js'; // Asegúrate que este path sea correcto
 
+// 🔑 Función para hashear valores sensibles
 function hashValue(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
@@ -12,9 +15,21 @@ function hashValue(value) {
 // =========================
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, isFrequent } = req.body;
 
-    const user = new User({ name, email, password, role });
+    const encryptedName = encrypt(name);
+    const encryptedEmail = encrypt(email);
+
+    const user = new User({ 
+      name: encryptedName,
+      nameHash: hashValue(encryptedName.data),
+      email: encryptedEmail,
+      emailHash: hashValue(encryptedEmail.data),
+      password,
+      role: role || 'cliente',
+      isFrequent: isFrequent || false
+    });
+
     const savedUser = await user.save();
 
     const token = jwt.sign(
@@ -28,8 +43,8 @@ export const registerUser = async (req, res) => {
       message: 'Usuario registrado exitosamente',
       user: {
         id: savedUser._id,
-        name: savedUser.name,
-        email: savedUser.email,
+        name: name,
+        email: email,
         role: savedUser.role,
       },
       token,
@@ -66,7 +81,8 @@ export const loginUser = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    const log = new LoginLog({ userId: user._id, email: user.email });
+    // Guardar log
+    const log = new LoginLog({ userId: user._id, email: email });
     await log.save();
 
     res.json({
@@ -86,89 +102,64 @@ export const loginUser = async (req, res) => {
 };
 
 // =========================
-// Registrar compra
+// Actualizar usuario (solo admin)
 // =========================
-export const registerPurchase = async (req, res) => {
+export const updateUser = async (req, res) => {
   try {
-    const { email, name, phone } = req.body;
-    const emailHash = hashValue(email);
-    const nameHash = hashValue(name);
+    const { name, email, role, password, isFrequent } = req.body;
 
-    let user = await User.findOne({ emailHash, nameHash, role: 'cliente' });
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-    if (!user) {
-      user = new User({
-        name,
-        email,
-        phone: phone || '',
-        role: 'cliente',
-        purchases: 1,
-        isFrequent: false,
-      });
-    } else {
-      user.purchases += 1;
+    if (name) {
+      const encryptedName = encrypt(name);
+      user.name = encryptedName;
+      user.nameHash = hashValue(encryptedName.data);
     }
 
-    if (user.purchases >= 2) user.isFrequent = true;
+    if (email) {
+      const encryptedEmail = encrypt(email);
+      user.email = encryptedEmail;
+      user.emailHash = hashValue(encryptedEmail.data);
+    }
 
-    await user.save();
+    if (role) user.role = role;
+    if (typeof isFrequent !== 'undefined') user.isFrequent = isFrequent;
+    if (password && password.trim() !== '') user.password = password; // se cifra en pre('save')
 
-    res.json({
-      message: user.isFrequent
-        ? `¡Felicitaciones! Ahora eres cliente frecuente con ${user.purchases} compras`
-        : `Compra registrada. Llevas ${user.purchases} compra(s)`,
-      user: {
-        name: user.name,
-        email: user.email,
-        purchases: user.purchases,
-        isFrequent: user.isFrequent,
-      },
-    });
+    const updatedUser = await user.save();
+    res.json(updatedUser);
   } catch (error) {
-    res.status(500).json({ message: 'Error al registrar compra', error: error.message });
+    res.status(500).json({ message: 'Error al actualizar usuario', error: error.message });
+  }
+};
+
+// El resto del archivo (getUsers, getLoginLogs, deleteUser, etc.) no requiere cambios relacionados con el cifrado, por lo que puedes dejarlo tal como ya lo tenías.
+
+
+// =========================
+// Eliminar usuario (solo admin)
+// =========================
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+    await user.deleteOne();
+    res.json({ message: 'Usuario eliminado correctamente' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al eliminar usuario', error: error.message });
   }
 };
 
 // =========================
-// Verificar usuario frecuente
+// Obtener usuarios frecuentes
 // =========================
-export const checkFrequentUser = async (req, res) => {
+export const getFrequentUsers = async (req, res) => {
   try {
-    const { email } = req.params;
-    const { name } = req.query;
-
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: 'Nombre es requerido',
-        isFrequent: false,
-        purchases: 0,
-      });
-    }
-
-    const emailHash = hashValue(email);
-    const nameHash = hashValue(name);
-
-    const user = await User.findOne({ emailHash, nameHash, role: 'cliente' });
-
-    if (!user) {
-      return res.json({ success: true, isFrequent: false, purchases: 0 });
-    }
-
-    res.json({
-      success: true,
-      isFrequent: user.isFrequent,
-      purchases: user.purchases,
-      user: {
-        name: user.name,
-        email: user.email,
-      },
-    });
+    const users = await User.find({ isFrequent: true, role: 'cliente' }).select('-password');
+    res.json({ success: true, users });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error al verificar usuario frecuente',
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Error al obtener usuarios frecuentes', error: error.message });
   }
 };

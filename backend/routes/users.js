@@ -1,3 +1,4 @@
+// routes/users.js
 import express from 'express';
 import {
   registerUser,
@@ -5,7 +6,7 @@ import {
   getUsers,
   getLoginLogs,
   updateUser,
-  deleteUser,
+  deleteUser, // 👈 ahora sí está en userController.js
   registerPurchase,
   checkFrequentUser,
   getFrequentUsers
