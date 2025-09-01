@@ -3,7 +3,7 @@ import User from '../models/User.js';
 import LoginLog from '../models/LoginLog.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { encrypt } from '../utils/encryption.js'; // Asegúrate que este path sea correcto
+import { encrypt } from '../config/encryption.js'; // Asegúrate que este path sea correcto
 
 // 🔑 Función para hashear valores sensibles
 function hashValue(value) {
