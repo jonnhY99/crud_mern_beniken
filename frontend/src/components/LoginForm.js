@@ -11,7 +11,7 @@ const LoginForm = ({ onLoginSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const data = await apiFetch("/api/auth/login", {
+      const data = await apiFetch("/api/users/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
@@ -19,7 +19,7 @@ const LoginForm = ({ onLoginSuccess }) => {
       localStorage.setItem("authToken", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      addToast("Bienvenido " + data.user.name, "success");
+      addToast(`Bienvenido ${data.user.name}`, "success");
       onLoginSuccess?.(data.user);
     } catch (err) {
       addToast(err?.message || "Correo o contraseña inválidos", "error");
