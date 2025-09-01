@@ -201,9 +201,9 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
               </div>
             ) : (order.receiptData && order.receiptData.validationStatus === 'pending' && order.status === 'Listo' && order.receiptData.uploadedAt) ? (
               <div className="bg-blue-100 text-blue-800 p-3 rounded mb-4 text-center font-semibold">
-                🔍 Tu pedido está listo y ajustado por la carniceria, ahora puedes pasar a pagar.
+                📄 Tu comprobante está siendo revisado por la carnicería. Te notificaremos cuando sea validado.
                 <span className="block text-sm mt-1">
-                  📄 Tu comprobante está siendo revisado por la carnicería. Te notificaremos cuando sea validado.
+                🔍 Tu pedido está listo y ajustado por la carniceria, ahora puedes pasar a pagar.
                 </span>
               </div>
             ) : (order.receiptData && order.receiptData.validationStatus === 'rejected' && order.status === 'Listo' && order.receiptData.uploadedAt) ? (
