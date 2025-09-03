@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import LoginLog from '../models/LoginLog.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { encrypt, hashValue } from '../config/encryption.js';
 
 // =========================
 // Registrar usuario
@@ -124,9 +125,25 @@ export const updateUser = async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    user.name = name || user.name;
-    user.email = email || user.email;
-    user.role = role || user.role;
+    if (name) {
+      const encryptedName = encrypt(name);
+      user.name = {
+        iv: encryptedName.iv,
+        data: encryptedName.data,
+        tag: encryptedName.tag
+      };
+      user.nameHash = hashValue(encryptedName.data);
+    }
+
+    if (email) {
+      const encryptedEmail = encrypt(email);
+      user.email = {
+        iv: encryptedEmail.iv,
+        data: encryptedEmail.data,
+        tag: encryptedEmail.tag
+      };
+      user.emailHash = hashValue(encryptedEmail.data);
+    }
 
     if (typeof isFrequent !== 'undefined') {
       user.isFrequent = isFrequent;
