@@ -8,23 +8,75 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
-  const [pickupTime, setPickupTime] = useState('10:00 AM');
-  const [isDelivery, setIsDelivery] = useState(false);
+  const [selectedComuna, setSelectedComuna] = useState('');
+  const [enabledComunas, setEnabledComunas] = useState(new Set([
+    'Las Condes', 'Providencia', 'Ñuñoa', 'Santiago Centro', 'Vitacura',
+    'Lo Barnechea', 'La Reina', 'Peñalolén', 'Macul', 'San Joaquín',
+    'La Florida', 'Puente Alto', 'Maipú', 'Quilicura', 'Huechuraba',
+    'Independencia', 'Recoleta', 'Conchalí', 'Quinta Normal', 'Estación Central'
+  ]));
+  const [showComunaSelector, setShowComunaSelector] = useState(false);
+  const [isFrequentUser, setIsFrequentUser] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [isDelivery, setIsDelivery] = useState(false);
+  const [pickupTime, setPickupTime] = useState('10:00 AM');
   const { addToast } = useToast();
   
-  // Check if delivery is available (minimum 100,000 CLP)
+  // 🚚 Despacho solo si el total >= 100.000 CLP
   const isDeliveryAvailable = totalAmount >= 100000;
+
+  // 🔧 Funciones para manejar comunas seleccionables
+  const toggleComuna = (comuna) => {
+    const newEnabledComunas = new Set(enabledComunas);
+    if (newEnabledComunas.has(comuna)) {
+      newEnabledComunas.delete(comuna);
+      // Si se deshabilita la comuna seleccionada, limpiar selección
+      if (selectedComuna === comuna) {
+        setSelectedComuna('');
+      }
+    } else {
+      newEnabledComunas.add(comuna);
+    }
+    setEnabledComunas(newEnabledComunas);
+  };
+
+  const enableAllComunas = () => {
+    setEnabledComunas(new Set([
+      'Las Condes', 'Providencia', 'Ñuñoa', 'Santiago Centro', 'Vitacura',
+      'Lo Barnechea', 'La Reina', 'Peñalolén', 'Macul', 'San Joaquín',
+      'La Florida', 'Puente Alto', 'Maipú', 'Quilicura', 'Huechuraba',
+      'Independencia', 'Recoleta', 'Conchalí', 'Quinta Normal', 'Estación Central'
+    ]));
+  };
+
+  const disableAllComunas = () => {
+    setEnabledComunas(new Set());
+    setSelectedComuna('');
+  };
+
+  // ✅ Validaciones
+  const validateName = (n) =>
+    /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$/.test(n.trim()) && n.trim().length >= 2;
+
+  const validateEmail = (e) =>
+    /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(e.trim());
+
+  const validatePhone = (p) => /^\+569[0-9]{8}$/.test(p.trim());
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate required fields
-    const requiredFields = [name, phone, email];
-    if (!isDelivery) requiredFields.push(pickupTime);
-    if (isDelivery) requiredFields.push(deliveryAddress);
-    
-    if (requiredFields.every(field => field.trim())) {
+    if (!validateName(name)) return addToast('Nombre inválido.', 'error');
+    if (!validateEmail(email)) return addToast('Correo inválido.', 'error');
+    if (!validatePhone(phone)) return addToast('Teléfono inválido.', 'error');
+    if (isDelivery && !deliveryAddress.trim())
+      return addToast('Debes ingresar dirección.', 'error');
+    if (isDelivery && !selectedComuna)
+      return addToast('Debes seleccionar una comuna.', 'error');
+    if (isDelivery && enabledComunas.size === 0)
+      return addToast('No hay comunas habilitadas para despacho.', 'error');
+
+    {
       const customerData = { 
         name, 
         phone, 
@@ -32,7 +84,8 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
         pickupTime: isDelivery ? null : pickupTime, 
         note,
         isDelivery,
-        deliveryAddress: isDelivery ? deliveryAddress : null
+        deliveryAddress: isDelivery ? deliveryAddress : null,
+        selectedComuna: isDelivery ? selectedComuna : null,
       };
 
       try {
@@ -52,8 +105,6 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
       } catch (err) {
         addToast('Error registrando compra ❌', 'error');
       }
-    } else {
-      addToast('Por favor, completa todos los campos obligatorios.', 'error');
     }
   };
 
@@ -127,21 +178,101 @@ const CustomerForm = ({ onSubmit, totalAmount = 0 }) => {
           </div>
           
           {isDelivery && (
-            <div>
-              <label className="block text-green-700 font-bold mb-1">
-                Dirección de Despacho:
-              </label>
-              <input
-                type="text"
-                value={deliveryAddress}
-                onChange={(e) => setDeliveryAddress(e.target.value)}
-                className="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="Ej. Av. siempre viva 742, Springfield"
-                required={isDelivery}
-              />
-              <p className="text-green-600 text-sm mt-1">
-                *El despacho se realizará en horario de 14:00 a 18:00 hrs
-              </p>
+            <div className="space-y-4">
+              {/* Selector de comunas disponibles */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-blue-700 font-bold">⚙️ Configurar Comunas Disponibles</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowComunaSelector(!showComunaSelector)}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  >
+                    {showComunaSelector ? '🔼 Ocultar' : '🔽 Mostrar'}
+                  </button>
+                </div>
+
+                {showComunaSelector && (
+                  <div className="space-y-3">
+                    <div className="flex gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={enableAllComunas}
+                        className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                      >
+                        ✅ Todas
+                      </button>
+                      <button
+                        type="button"
+                        onClick={disableAllComunas}
+                        className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                      >
+                        ❌ Ninguna
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
+                      {[
+                        'Las Condes', 'Providencia', 'Ñuñoa', 'Santiago Centro', 'Vitacura',
+                        'Lo Barnechea', 'La Reina', 'Peñalolén', 'Macul', 'San Joaquín',
+                        'La Florida', 'Puente Alto', 'Maipú', 'Quilicura', 'Huechuraba',
+                        'Independencia', 'Recoleta', 'Conchalí', 'Quinta Normal', 'Estación Central'
+                      ].map((comuna) => (
+                        <label key={comuna} className="flex items-center space-x-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={enabledComunas.has(comuna)}
+                            onChange={() => toggleComuna(comuna)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <span className={enabledComunas.has(comuna) ? 'text-blue-700' : 'text-gray-500'}>
+                            {comuna}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    
+                    <p className="text-blue-600 text-xs mt-2">
+                      📍 {enabledComunas.size} de 20 comunas habilitadas
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-green-700 font-bold mb-1">Comuna de Despacho:</label>
+                <select
+                  value={selectedComuna}
+                  onChange={(e) => setSelectedComuna(e.target.value)}
+                  className="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required={isDelivery}
+                >
+                  <option value="">Selecciona tu comuna</option>
+                  {Array.from(enabledComunas).sort().map((comuna) => (
+                    <option key={comuna} value={comuna}>{comuna}</option>
+                  ))}
+                </select>
+                {enabledComunas.size === 0 && (
+                  <p className="text-red-500 text-xs mt-1">⚠️ No hay comunas habilitadas para despacho</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-green-700 font-bold mb-1">
+                  Dirección de Despacho:
+                </label>
+                <input
+                  type="text"
+                  value={deliveryAddress}
+                  onChange={(e) => setDeliveryAddress(e.target.value)}
+                  className="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="Ej. Av. Siempre Viva 742"
+                  required={isDelivery}
+                />
+                <p className="text-green-600 text-sm mt-1">
+                  *El despacho se realizará en horario de 14:00 a 18:00 hrs
+                </p>
+              </div>
             </div>
           )}
         </div>

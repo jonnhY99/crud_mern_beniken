@@ -3,19 +3,122 @@ import mongoose from 'mongoose';
 
 const loginLogSchema = new mongoose.Schema(
   {
-    name:   { type: String, required: true },
-    email:  { type: String, required: true },
-    role:   { type: String, required: true },
-    ip:     { type: String, default: '-' },
-    userAgent: { type: String, default: '-' },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    userId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'User', 
+      required: true 
+    },
+    name: { 
+      type: String, 
+      required: true,
+      trim: true 
+    },
+    email: { 
+      type: String, 
+      required: true,
+      lowercase: true,
+      trim: true 
+    },
+    role: { 
+      type: String, 
+      required: true,
+      enum: ['admin', 'carniceria', 'cliente'],
+      default: 'cliente'
+    },
+    ip: { 
+      type: String, 
+      default: '-',
+      trim: true 
+    },
+    userAgent: { 
+      type: String, 
+      default: '-',
+      trim: true 
+    },
+    loginMethod: {
+      type: String,
+      enum: ['password', 'token', 'social'],
+      default: 'password'
+    },
+    success: {
+      type: Boolean,
+      default: true
+    },
+    errorMessage: {
+      type: String,
+      default: null
+    }
   },
-  { timestamps: true } // createdAt / updatedAt automáticos
+  { 
+    timestamps: true, // createdAt / updatedAt automáticos
+    collection: 'loginlogs' // nombre explícito de la colección
+  }
 );
 
-// índices para búsquedas rápidas
+// índices para búsquedas rápidas y rendimiento
 loginLogSchema.index({ createdAt: -1 });
 loginLogSchema.index({ email: 1 });
 loginLogSchema.index({ role: 1 });
+loginLogSchema.index({ userId: 1 });
+loginLogSchema.index({ success: 1 });
+loginLogSchema.index({ ip: 1 });
+
+// Método estático para crear log de login exitoso
+loginLogSchema.statics.logSuccessfulLogin = async function(user, req) {
+  try {
+    const loginLog = new this({
+      userId: user._id,
+      name: user.name || 'Usuario sin nombre',
+      email: user.email,
+      role: user.role || 'cliente',
+      ip: getClientIp(req),
+      userAgent: req.headers['user-agent'] || 'Unknown',
+      loginMethod: 'password',
+      success: true
+    });
+    
+    await loginLog.save();
+    return loginLog;
+  } catch (error) {
+    console.error('Error saving login log:', error);
+    throw error;
+  }
+};
+
+// Método estático para crear log de login fallido
+loginLogSchema.statics.logFailedLogin = async function(email, req, errorMessage) {
+  try {
+    // Para logs fallidos, userId no es requerido, usamos un ObjectId temporal
+    const tempUserId = new mongoose.Types.ObjectId();
+    
+    const loginLog = new this({
+      userId: tempUserId,
+      name: 'Login fallido',
+      email: email || 'email-desconocido',
+      role: 'unknown',
+      ip: getClientIp(req),
+      userAgent: req.headers['user-agent'] || 'Unknown',
+      loginMethod: 'password',
+      success: false,
+      errorMessage: errorMessage || 'Credenciales inválidas'
+    });
+    
+    await loginLog.save();
+    return loginLog;
+  } catch (error) {
+    console.error('Error saving failed login log:', error);
+    // No lanzar error para no interrumpir el flujo de login
+    return null;
+  }
+};
+
+// Función helper para obtener IP del cliente
+function getClientIp(req) {
+  const xForwardedFor = req.headers['x-forwarded-for'];
+  if (xForwardedFor) {
+    return xForwardedFor.split(',')[0].trim();
+  }
+  return req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress || '-';
+}
 
 export default mongoose.model('LoginLog', loginLogSchema);

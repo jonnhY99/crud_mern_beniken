@@ -255,68 +255,150 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
             </div>
           </div>
 
-          {/* Botones */}
-          <div className="flex justify-center gap-3">
-            {/* Mostrar QR cuando esté listo y pagado */}
-            {order.status === 'Listo' && order.paid && (
+        {/* Estado del Pedido */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-4 text-center">Estado del Pedido</h3>
+          
+          {/* Versión móvil - vertical */}
+          <div className="block sm:hidden">
+            <div className="space-y-4">
+              {steps.filter(step => !step.condition || step.condition()).map((step, index, filteredSteps) => {
+                const status = getStepStatus(step);
+                const isCompleted = status === 'completed';
+                const isCurrent = status === 'current';
+                const isLast = index === filteredSteps.length - 1;
+                
+                return (
+                  <div key={step.key} className="flex items-center relative">
+                    {/* Línea vertical */}
+                    {!isLast && (
+                      <div className="absolute left-6 top-12 w-0.5 h-8 bg-gray-200"></div>
+                    )}
+                    
+                    {/* Círculo del paso */}
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold border-2 bg-white flex-shrink-0
+                      ${isCompleted ? 'border-green-500 text-green-500' : 
+                        isCurrent ? 'border-blue-500 text-blue-500 ring-2 ring-blue-200' : 
+                        'border-gray-300 text-gray-400'}`}>
+                      {isCompleted ? '✓' : step.icon}
+                    </div>
+                    
+                    {/* Etiqueta del paso */}
+                    <div className={`ml-4 font-medium
+                      ${isCompleted ? 'text-green-600' : 
+                        isCurrent ? 'text-blue-600' : 
+                        'text-gray-500'}`}>
+                      {step.label}
+                      {isCurrent && (
+                        <div className="text-xs text-blue-500 mt-1">En proceso...</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Versión desktop - horizontal */}
+          <div className="hidden sm:flex items-center justify-between relative px-4">
+            {/* Línea de progreso */}
+            <div className="absolute top-6 left-8 right-8 h-0.5 bg-gray-200 -z-10"></div>
+            
+            {steps.filter(step => !step.condition || step.condition()).map((step, index, filteredSteps) => {
+              const status = getStepStatus(step);
+              const isCompleted = status === 'completed';
+              const isCurrent = status === 'current';
+              
+              return (
+                <div key={step.key} className="flex flex-col items-center relative">
+                  {/* Círculo del paso */}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold border-2 bg-white
+                    ${isCompleted ? 'border-green-500 text-green-500' : 
+                      isCurrent ? 'border-blue-500 text-blue-500 ring-2 ring-blue-200' : 
+                      'border-gray-300 text-gray-400'}`}>
+                    {isCompleted ? '✓' : step.icon}
+                  </div>
+                  
+                  {/* Etiqueta del paso */}
+                  <div className={`mt-2 text-xs font-medium text-center max-w-20
+                    ${isCompleted ? 'text-green-600' : 
+                      isCurrent ? 'text-blue-600' : 
+                      'text-gray-500'}`}>
+                    {step.label}
+                  </div>
+                  
+                  {/* Indicador de paso actual */}
+                  {isCurrent && (
+                    <div className="absolute -bottom-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Botones */}
+        <div className="flex justify-center gap-3">
+          {/* Mostrar QR cuando esté listo y pagado */}
+          {order.status === 'Listo' && order.paid && (
+            <button
+              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
+              onClick={() => setShowQR(true)}
+            >
+              📱 Ver QR para retiro
+            </button>
+          )}
+          
+          {/* Botones de pago cuando está listo pero no pagado */}
+          {order.status === 'Listo' && !order.paid && (
+            order.paymentMethod === 'local' ? (
               <button
                 className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
                 onClick={() => setShowQR(true)}
               >
                 📱 Ver QR para retiro
               </button>
-            )}
-            
-            {/* Botones de pago cuando está listo pero no pagado */}
-            {order.status === 'Listo' && !order.paid && (
-              order.paymentMethod === 'local' ? (
-                <button
-                  className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
-                  onClick={() => setShowQR(true)}
-                >
-                  📱 Ver QR para retiro
-                </button>
-              ) : (order.receiptData && order.receiptData.validationStatus === 'rejected') ? (
-                <button
-                  className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700"
-                  onClick={() => navigate(`/payment/${order.id}`)}
-                >
-                  Subir nuevo comprobante
-                </button>
-              ) : (
-                <button
-                  className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700"
-                  onClick={() => navigate(`/payment/${order.id}`)}
-                >
-                  Ir a Pagar
-                </button>
-              )
-            )}
-            <button
-              className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-              onClick={load}
-            >
-              Actualizar ahora
-            </button>
-            <button
-              className="px-4 py-2 rounded bg-red-700 text-white hover:bg-red-800"
-              onClick={() =>
-                onGoHome ? onGoHome() : (window.location.href = '/')
-              }
-            >
-              Ir al inicio
-            </button>
-          </div>
-        </>
-      )}
-      
-      {/* QR Modal */}
-      {showQR && order && (
-        <OrderQRCode 
-          order={order} 
-          onClose={() => setShowQR(false)} 
-        />
-      )}
-    </div>
-  );
+            ) : (order.receiptData && order.receiptData.validationStatus === 'rejected') ? (
+              <button
+                className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700"
+                onClick={() => navigate(`/payment/${order.id}`)}
+              >
+                Subir nuevo comprobante
+              </button>
+            ) : (
+              <button
+                className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700"
+                onClick={() => navigate(`/payment/${order.id}`)}
+              >
+                Ir a Pagar
+              </button>
+            )
+          )}
+          <button
+            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+            onClick={load}
+          >
+            Actualizar ahora
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-red-700 text-white hover:bg-red-800"
+            onClick={() =>
+              onGoHome ? onGoHome() : (window.location.href = '/')
+            }
+          >
+            Ir al inicio
+          </button>
+        </div>
+      </>
+    )}
+    
+    {/* QR Modal */}
+    {showQR && order && (
+      <OrderQRCode 
+        order={order} 
+        onClose={() => setShowQR(false)} 
+      />
+    )}
+  </div>
+);
 }
