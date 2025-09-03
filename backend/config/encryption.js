@@ -24,7 +24,7 @@ export const encrypt = (text) => {
 
     const key = getKey();
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipher(ALGORITHM, key);
+    const cipher = crypto.createCipherGCM(ALGORITHM, key, iv);
     cipher.setAAD(Buffer.from('beniken-aad', 'utf8'));
 
     let encrypted = cipher.update(text, 'utf8', 'hex');
@@ -61,7 +61,7 @@ export const decrypt = (encryptedData) => {
     }
 
     const key = getKey();
-    const decipher = crypto.createDecipher(ALGORITHM, key);
+    const decipher = crypto.createDecipherGCM(ALGORITHM, key, Buffer.from(iv, 'hex'));
     decipher.setAAD(Buffer.from('beniken-aad', 'utf8'));
     decipher.setAuthTag(Buffer.from(tag, 'hex'));
 
