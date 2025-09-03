@@ -31,6 +31,29 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
   const [seconds, setSeconds] = useState(15); // ⏳ contador para refrescar
   const [showQR, setShowQR] = useState(false);
 
+  // 📊 Definir etapas de progreso
+  const getProgressSteps = () => [
+    { key: 'Pendiente', label: 'Pedido Recibido', icon: '📋' },
+    { key: 'En preparación', label: 'En Preparación', icon: '👨‍🍳' },
+    { key: 'Listo', label: 'Listo para Retiro', icon: '✅' },
+    { key: 'Pagado', label: 'Pagado', icon: '💳', condition: () => order?.paid },
+    { key: 'Entregado', label: 'Entregado', icon: '🎉' }
+  ];
+
+  const getStepStatus = (step) => {
+    if (step.key === 'Pagado') {
+      return order?.paid ? 'completed' : order?.status === 'Listo' ? 'current' : 'pending';
+    }
+    
+    const statusOrder = ['Pendiente', 'En preparación', 'Listo', 'Entregado'];
+    const currentIndex = statusOrder.indexOf(order?.status);
+    const stepIndex = statusOrder.indexOf(step.key);
+    
+    if (stepIndex < currentIndex) return 'completed';
+    if (stepIndex === currentIndex) return 'current';
+    return 'pending';
+  };
+
   const load = async () => {
     if (!orderId) {
       setErr('No se encontró el identificador del pedido.');
@@ -262,7 +285,7 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
           {/* Versión móvil - vertical */}
           <div className="block sm:hidden">
             <div className="space-y-4">
-              {steps.filter(step => !step.condition || step.condition()).map((step, index, filteredSteps) => {
+              {getProgressSteps().filter(step => !step.condition || step.condition()).map((step, index, filteredSteps) => {
                 const status = getStepStatus(step);
                 const isCompleted = status === 'completed';
                 const isCurrent = status === 'current';
@@ -304,7 +327,7 @@ export default function OrderStatusPage({ orderId: propOrderId, onGoHome }) {
             {/* Línea de progreso */}
             <div className="absolute top-6 left-8 right-8 h-0.5 bg-gray-200 -z-10"></div>
             
-            {steps.filter(step => !step.condition || step.condition()).map((step, index, filteredSteps) => {
+            {getProgressSteps().filter(step => !step.condition || step.condition()).map((step, index, filteredSteps) => {
               const status = getStepStatus(step);
               const isCompleted = status === 'completed';
               const isCurrent = status === 'current';

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
+import ErrorBoundary from './components/ErrorBoundary.js';
 import LayoutHeader from './components/HeaderLayout.js';
 import ProductList from './components/ProductList.js';
 import CartItem from './components/CartItem.js';
@@ -237,16 +238,17 @@ const App = () => {
   const isButcher = user?.role === 'carniceria';
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* ✅ Header con carrito */}
-      <LayoutHeader
-        user={user}
-        onLogout={handleLogout}
-        cartCount={cart.length}
-      />
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-100 flex flex-col">
+        {/* ✅ Header con carrito */}
+        <LayoutHeader
+          user={user}
+          onLogout={handleLogout}
+          cartCount={cart.length}
+        />
 
-      <main className="flex-1">
-        <Routes>
+        <main className="flex-1">
+          <Routes>
           <Route path="/" element={<><HeroSection /><ProductsPreview products={products} /><Categories /><WhyChooseUs /><div className="container mx-auto p-6"><TestimonialsSection /><GallerySection /></div></>} />
           <Route path="/login" element={<div className="container mx-auto p-6 pt-24"><LoginForm onLoginSuccess={(u) => { setUser(u); navigate('/'); }} /></div>} />
 
@@ -304,11 +306,12 @@ const App = () => {
         </Routes>
       </main>
 
-      <LayoutFooter />
-      
-      {/* Chatbot global popup */}
-      <ChatBot />
-    </div>
+        <LayoutFooter />
+        
+        {/* Chatbot flotante */}
+        <ChatBot />
+      </div>
+    </ErrorBoundary>
   );
 };
 

@@ -64,15 +64,15 @@ loginLogSchema.index({ success: 1 });
 loginLogSchema.index({ ip: 1 });
 
 // Método estático para crear log de login exitoso
-loginLogSchema.statics.logSuccessfulLogin = async function(user, req) {
+loginLogSchema.statics.logSuccessfulLogin = async function(userId, email, ip, userAgent, name, role) {
   try {
     const loginLog = new this({
-      userId: user._id,
-      name: user.name || 'Usuario sin nombre',
-      email: user.email,
-      role: user.role || 'cliente',
-      ip: getClientIp(req),
-      userAgent: req.headers['user-agent'] || 'Unknown',
+      userId: userId,
+      name: name || 'Usuario sin nombre',
+      email: email,
+      role: role || 'cliente',
+      ip: ip || '-',
+      userAgent: userAgent || 'Unknown',
       loginMethod: 'password',
       success: true
     });
@@ -86,18 +86,18 @@ loginLogSchema.statics.logSuccessfulLogin = async function(user, req) {
 };
 
 // Método estático para crear log de login fallido
-loginLogSchema.statics.logFailedLogin = async function(email, req, errorMessage) {
+loginLogSchema.statics.logFailedLogin = async function(userId, email, errorMessage, ip, userAgent, name, role) {
   try {
-    // Para logs fallidos, userId no es requerido, usamos un ObjectId temporal
-    const tempUserId = new mongoose.Types.ObjectId();
+    // Para logs fallidos, userId puede ser null
+    const tempUserId = userId || new mongoose.Types.ObjectId();
     
     const loginLog = new this({
       userId: tempUserId,
-      name: 'Login fallido',
+      name: name || 'Login fallido',
       email: email || 'email-desconocido',
-      role: 'unknown',
-      ip: getClientIp(req),
-      userAgent: req.headers['user-agent'] || 'Unknown',
+      role: role || 'unknown',
+      ip: ip || '-',
+      userAgent: userAgent || 'Unknown',
       loginMethod: 'password',
       success: false,
       errorMessage: errorMessage || 'Credenciales inválidas'
