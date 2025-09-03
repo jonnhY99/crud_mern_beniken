@@ -1,4 +1,5 @@
 import Order from "../models/Order.js";
+import { sendOrderConfirmation, sendOrderStatusUpdate, sendPaymentConfirmation } from "../services/emailService.js";
 
 // 🔹 Normalizar el estado recibido
 function normalizeStatus(status) {
@@ -20,6 +21,18 @@ export const createOrder = async (req, res) => {
       reviewed: false, // 🔹 al inicio no está revisado
     });
     await newOrder.save();
+
+    // 📧 Enviar email de confirmación si hay email del cliente
+    if (req.body.customerEmail) {
+      try {
+        await sendOrderConfirmation(newOrder, req.body.customerEmail);
+        console.log(`✅ Email de confirmación enviado para pedido ${newOrder.orderNumber}`);
+      } catch (emailError) {
+        console.error(`❌ Error enviando email de confirmación:`, emailError);
+        // No fallar la creación del pedido por error de email
+      }
+    }
+
     res.status(201).json(newOrder);
   } catch (error) {
     res.status(500).json({ message: "Error al crear pedido", error });
@@ -59,6 +72,17 @@ export const updateOrderStatus = async (req, res) => {
 
     if (!order) {
       return res.status(404).json({ message: "Pedido no encontrado" });
+    }
+
+    // 📧 Enviar email de actualización de estado si hay email del cliente
+    if (order.customerEmail) {
+      try {
+        await sendOrderStatusUpdate(order, order.customerEmail, normalized);
+        console.log(`✅ Email de actualización enviado para pedido ${order.orderNumber} - Estado: ${normalized}`);
+      } catch (emailError) {
+        console.error(`❌ Error enviando email de actualización:`, emailError);
+        // No fallar la actualización por error de email
+      }
     }
 
     res.json(order);

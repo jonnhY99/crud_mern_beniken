@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import LoginLog from '../models/LoginLog.js';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 // =========================
 // Registrar usuario
@@ -20,25 +21,67 @@ export const registerUser = async (req, res) => {
 // =========================
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
+  
+  // Helper para obtener IP del cliente
+  const getClientIp = (req) => {
+    return req.headers['x-forwarded-for']?.split(',')[0] || 
+           req.connection?.remoteAddress || 
+           req.socket?.remoteAddress || 
+           req.ip || 
+           'unknown';
+  };
+
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+    
+    if (!user) {
+      // Log de intento fallido - usuario no encontrado
+      await LoginLog.logFailedLogin(
+        null, 
+        email, 
+        'Usuario no encontrado',
+        getClientIp(req),
+        req.headers['user-agent'] || 'Unknown'
+      );
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
 
     const isMatch = await user.matchPassword(password);
-    if (!isMatch) return res.status(400).json({ message: 'Contraseña incorrecta' });
+    
+    if (!isMatch) {
+      // Log de intento fallido - contraseña incorrecta
+      await LoginLog.logFailedLogin(
+        user._id,
+        user.email,
+        'Contraseña incorrecta',
+        getClientIp(req),
+        req.headers['user-agent'] || 'Unknown',
+        user.name,
+        user.role
+      );
+      return res.status(400).json({ message: 'Contraseña incorrecta' });
+    }
 
+    // Login exitoso
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
 
-    // Guardar log automáticamente
-    const log = new LoginLog({ userId: user._id, email: user.email });
-    await log.save();
+    // Log de login exitoso
+    await LoginLog.logSuccessfulLogin(
+      user._id,
+      user.email,
+      getClientIp(req),
+      req.headers['user-agent'] || 'Unknown',
+      user.name,
+      user.role
+    );
 
     res.json({ token, user });
   } catch (error) {
+    console.error('Error en login:', error);
     res.status(500).json({ message: 'Error en el login', error: error.message });
   }
 };

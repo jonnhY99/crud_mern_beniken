@@ -56,6 +56,10 @@ app.use('/api/orders', ordersRouterFactory(io));
 // ===== Usuarios (solo admin puede listar/gestionar) =====
 app.use('/api/users', usersRouter); // 👈 aquí montamos las rutas de usuarios
 
+// ===== Pagos y validación de comprobantes =====
+import paymentsRouter from './routes/payments.js';
+app.use('/api/payments', paymentsRouter);
+
 // ===== Reviews (reseñas de clientes) =====
 app.use('/api/reviews', reviewsRouter);
 
