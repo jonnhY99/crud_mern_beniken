@@ -42,7 +42,7 @@ const ProductsPreview = ({ products = [] }) => {
                   {product.description || 'Corte fresco de primera calidad'}
                 </p>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-3">
                   <div className="text-2xl font-bold text-red-700">
                     ${product.price?.toLocaleString('es-CL') || '0'}
                     <span className="text-sm text-gray-500 font-normal">
@@ -50,10 +50,34 @@ const ProductsPreview = ({ products = [] }) => {
                     </span>
                   </div>
                   
-                  <button className="inline-flex items-center px-4 py-2 bg-red-700 text-white font-medium rounded-lg hover:bg-red-800 transition-colors duration-200">
-                    <ShoppingCart className="w-4 h-4 mr-2" />
-                    Consultar
-                  </button>
+                  <div className="text-right">
+                    <div className={`text-sm font-medium ${
+                      product.stock > 10 ? 'text-green-600' : 
+                      product.stock > 0 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {product.stock > 0 ? `Stock: ${product.stock}` : 'Sin stock'}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center">
+                  {product.stock > 0 ? (
+                    <Link
+                      to="/productos"
+                      className="inline-flex items-center px-4 py-2 bg-red-700 text-white font-medium rounded-lg hover:bg-red-800 transition-colors duration-200 w-full justify-center"
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      Agregar al Carrito
+                    </Link>
+                  ) : (
+                    <button 
+                      disabled
+                      className="inline-flex items-center px-4 py-2 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed w-full justify-center"
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      Sin Stock
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
