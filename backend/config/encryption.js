@@ -1,8 +1,8 @@
 // backend/config/encryption.js
 import crypto from 'crypto';
 
-// Configuración de cifrado
-const ALGORITHM = 'aes-256-gcm';
+// Configuración de cifrado - Usar AES-256-CBC por compatibilidad
+const ALGORITHM = 'aes-256-cbc';
 const SECRET_KEY = process.env.ENCRYPTION_SECRET || 'beniken-secret-key-2024-very-secure-32b';
 const IV_LENGTH = 16; // Para AES, esto es siempre 16
 
@@ -14,7 +14,7 @@ const getKey = () => {
 /**
  * Cifrar texto
  * @param {string} text - Texto a cifrar
- * @returns {object} - Objeto con iv, data y tag
+ * @returns {object} - Objeto con iv y data
  */
 export const encrypt = (text) => {
   try {
@@ -24,18 +24,15 @@ export const encrypt = (text) => {
 
     const key = getKey();
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipherGCM(ALGORITHM, key, iv);
-    cipher.setAAD(Buffer.from('beniken-aad', 'utf8'));
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
 
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
-    const tag = cipher.getAuthTag();
 
     return {
       iv: iv.toString('hex'),
       data: encrypted,
-      tag: tag.toString('hex')
+      tag: '' // Mantener compatibilidad con estructura existente
     };
   } catch (error) {
     console.error('Error en encrypt:', error);
@@ -45,7 +42,7 @@ export const encrypt = (text) => {
 
 /**
  * Descifrar texto
- * @param {object} encryptedData - Objeto con iv, data y tag
+ * @param {object} encryptedData - Objeto con iv y data
  * @returns {string} - Texto descifrado
  */
 export const decrypt = (encryptedData) => {
@@ -54,16 +51,14 @@ export const decrypt = (encryptedData) => {
       return null;
     }
 
-    const { iv, data, tag } = encryptedData;
+    const { iv, data } = encryptedData;
     
-    if (!iv || !data || !tag) {
+    if (!iv || !data) {
       return null;
     }
 
     const key = getKey();
-    const decipher = crypto.createDecipherGCM(ALGORITHM, key, Buffer.from(iv, 'hex'));
-    decipher.setAAD(Buffer.from('beniken-aad', 'utf8'));
-    decipher.setAuthTag(Buffer.from(tag, 'hex'));
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, Buffer.from(iv, 'hex'));
 
     let decrypted = decipher.update(data, 'hex', 'utf8');
     decrypted += decipher.final('utf8');

@@ -2,17 +2,93 @@ import User from '../models/User.js';
 import LoginLog from '../models/LoginLog.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { encrypt, hashValue } from '../config/encryption.js';
+import { encrypt, decrypt, hashValue } from '../config/encryption.js';
+
+// Test function for encryption
+export const testEncryption = async (req, res) => {
+  try {
+    console.log('🔐 Testing Encryption Functions...\n');
+    
+    // Test 1: Basic encryption and decryption
+    const testEmail = 'test@beniken.com';
+    const encrypted = encrypt(testEmail);
+    console.log('✅ Encryption successful:', encrypted);
+    
+    const decrypted = decrypt(encrypted);
+    console.log('✅ Decryption successful:', decrypted);
+    console.log('✅ Match:', testEmail === decrypted ? 'YES' : 'NO');
+    
+    // Test 2: Hash functionality
+    const emailHash = hashValue(encrypted.data);
+    console.log('✅ Email hash created:', emailHash);
+    
+    // Test 3: Search simulation
+    const searchHash = hashValue(encrypt(testEmail).data);
+    console.log('✅ Search hash matches:', emailHash === searchHash ? 'YES' : 'NO');
+    
+    res.json({
+      message: 'Encryption test completed',
+      results: {
+        originalEmail: testEmail,
+        encrypted: encrypted,
+        decrypted: decrypted,
+        encryptionWorks: testEmail === decrypted,
+        emailHash: emailHash,
+        searchHashMatches: emailHash === searchHash
+      }
+    });
+  } catch (error) {
+    console.error('❌ Encryption test failed:', error);
+    res.status(500).json({ 
+      message: 'Encryption test failed', 
+      error: error.message 
+    });
+  }
+};
 
 // =========================
 // Registrar usuario
 // =========================
 export const registerUser = async (req, res) => {
   try {
-    const user = new User(req.body);
+    const { name, email, password, role, isFrequent } = req.body;
+    
+    // Cifrar y hashear manualmente como en registerPurchase
+    const encryptedName = encrypt(name);
+    const encryptedEmail = encrypt(email.toLowerCase());
+    
+    const user = new User({
+      name: {
+        iv: encryptedName.iv,
+        data: encryptedName.data,
+        tag: encryptedName.tag
+      },
+      email: {
+        iv: encryptedEmail.iv,
+        data: encryptedEmail.data,
+        tag: encryptedEmail.tag
+      },
+      nameHash: hashValue(encryptedName.data),
+      emailHash: hashValue(encryptedEmail.data),
+      password: password,
+      role: role || 'cliente',
+      isFrequent: isFrequent || false,
+      purchases: 0
+    });
+    
     const savedUser = await user.save();
-    res.status(201).json(savedUser);
+    console.log('✅ User registered successfully:', savedUser._id);
+    
+    // Descifrar datos antes de enviar al frontend
+    const decryptedUser = {
+      ...savedUser.toObject(),
+      name: name,
+      email: email.toLowerCase()
+    };
+    
+    res.status(201).json(decryptedUser);
   } catch (error) {
+    console.error('Error in registerUser:', error);
     res.status(400).json({ message: 'Error al registrar usuario', error: error.message });
   }
 };
@@ -33,7 +109,9 @@ export const loginUser = async (req, res) => {
   };
 
   try {
-    const user = await User.findOne({ email });
+    // Buscar usuario por emailHash ya que los emails están encriptados
+    const emailHash = hashValue(encrypt(email).data);
+    const user = await User.findOne({ emailHash });
     
     if (!user) {
       // Log de intento fallido - usuario no encontrado
@@ -93,7 +171,25 @@ export const loginUser = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password');
-    res.json(users);
+    // Descifrar datos antes de enviar al frontend con manejo de errores
+    const decryptedUsers = users.map(user => {
+      const userObj = user.toObject();
+      try {
+        return {
+          ...userObj,
+          name: userObj.name && typeof userObj.name === 'object' ? decrypt(userObj.name) : userObj.name || 'N/A',
+          email: userObj.email && typeof userObj.email === 'object' ? decrypt(userObj.email) : userObj.email || 'N/A'
+        };
+      } catch (decryptError) {
+        console.warn('Error decrypting user data:', user._id, decryptError.message);
+        return {
+          ...userObj,
+          name: 'Error al descifrar',
+          email: 'Error al descifrar'
+        };
+      }
+    });
+    res.json(decryptedUsers);
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener usuarios', error: error.message });
   }
@@ -154,7 +250,23 @@ export const updateUser = async (req, res) => {
     }
 
     const updatedUser = await user.save();
-    res.json(updatedUser);
+    // Descifrar datos antes de enviar al frontend con manejo de errores
+    const userObj = updatedUser.toObject();
+    try {
+      const decryptedUser = {
+        ...userObj,
+        name: userObj.name && typeof userObj.name === 'object' ? decrypt(userObj.name) : userObj.name || 'N/A',
+        email: userObj.email && typeof userObj.email === 'object' ? decrypt(userObj.email) : userObj.email || 'N/A'
+      };
+      res.json(decryptedUser);
+    } catch (decryptError) {
+      console.warn('Error decrypting updated user data:', updatedUser._id, decryptError.message);
+      res.json({
+        ...userObj,
+        name: 'Error al descifrar',
+        email: 'Error al descifrar'
+      });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Error al actualizar usuario', error: error.message });
   }
@@ -181,23 +293,104 @@ export const deleteUser = async (req, res) => {
 // Registrar compra y marcar frecuentes
 // =========================
 export const registerPurchase = async (req, res) => {
+  console.log('🔍 registerPurchase called with:', req.body);
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
+    
+    if (!email) {
+      console.log('❌ No email provided');
+      return res.status(400).json({ message: 'Email es requerido' });
     }
 
+    // Buscar usuario por emailHash ya que los emails están encriptados
+    const emailHash = hashValue(encrypt(email).data);
+    console.log('🔍 Looking for user with emailHash:', emailHash);
+    const user = await User.findOne({ emailHash });
+
+    if (!user) {
+      console.log('❌ User not found for email:', email);
+      console.log('✅ Creating new user automatically');
+      
+      // Crear usuario automáticamente si no existe
+      // Generar hashes manualmente ya que el middleware no se ejecuta a tiempo
+      const encryptedName = encrypt('Cliente');
+      const encryptedEmail = encrypt(email);
+      
+      const newUser = new User({
+        name: {
+          iv: encryptedName.iv,
+          data: encryptedName.data,
+          tag: encryptedName.tag
+        },
+        email: {
+          iv: encryptedEmail.iv,
+          data: encryptedEmail.data,
+          tag: encryptedEmail.tag
+        },
+        nameHash: hashValue(encryptedName.data),
+        emailHash: hashValue(encryptedEmail.data),
+        password: 'defaultPassword123', // Contraseña temporal
+        isFrequent: false,
+        purchases: 1, // Primera compra
+        role: 'cliente'
+      });
+      
+      const savedUser = await newUser.save();
+      console.log('✅ New user created:', savedUser._id);
+      // Descifrar datos antes de enviar al frontend con manejo de errores
+      const userObj = savedUser.toObject();
+      try {
+        const decryptedUser = {
+          ...userObj,
+          name: userObj.name && typeof userObj.name === 'object' ? decrypt(userObj.name) : userObj.name || 'N/A',
+          email: userObj.email && typeof userObj.email === 'object' ? decrypt(userObj.email) : userObj.email || 'N/A'
+        };
+        return res.json({ message: 'Usuario creado y compra registrada', user: decryptedUser });
+      } catch (decryptError) {
+        console.warn('Error decrypting new user data:', savedUser._id, decryptError.message);
+        return res.json({ 
+          message: 'Usuario creado y compra registrada', 
+          user: {
+            ...userObj,
+            name: 'Error al descifrar',
+            email: 'Error al descifrar'
+          }
+        });
+      }
+    }
+
+    console.log('✅ User found:', user.name, 'Current purchases:', user.purchases);
     user.purchases += 1;
 
     if (user.purchases >= 2) {
       user.isFrequent = true;
+      console.log('✅ User marked as frequent');
     }
 
     await user.save();
-    res.json({ message: 'Compra registrada', user });
+    console.log('✅ Purchase registered successfully');
+    // Descifrar datos antes de enviar al frontend con manejo de errores
+    const userObj = user.toObject();
+    try {
+      const decryptedUser = {
+        ...userObj,
+        name: userObj.name && typeof userObj.name === 'object' ? decrypt(userObj.name) : userObj.name || 'N/A',
+        email: userObj.email && typeof userObj.email === 'object' ? decrypt(userObj.email) : userObj.email || 'N/A'
+      };
+      res.json({ message: 'Compra registrada', user: decryptedUser });
+    } catch (decryptError) {
+      console.warn('Error decrypting purchase user data:', user._id, decryptError.message);
+      res.json({ 
+        message: 'Compra registrada', 
+        user: {
+          ...userObj,
+          name: 'Error al descifrar',
+          email: 'Error al descifrar'
+        }
+      });
+    }
   } catch (error) {
+    console.error('❌ Error en registerPurchase:', error);
     res.status(500).json({ message: 'Error al registrar compra', error: error.message });
   }
 };
@@ -208,7 +401,25 @@ export const registerPurchase = async (req, res) => {
 export const getFrequentUsers = async (req, res) => {
   try {
     const users = await User.find({ isFrequent: true }).select('-password');
-    res.json(users);
+    // Descifrar datos antes de enviar al frontend con manejo de errores
+    const decryptedUsers = users.map(user => {
+      const userObj = user.toObject();
+      try {
+        return {
+          ...userObj,
+          name: userObj.name && typeof userObj.name === 'object' ? decrypt(userObj.name) : userObj.name || 'N/A',
+          email: userObj.email && typeof userObj.email === 'object' ? decrypt(userObj.email) : userObj.email || 'N/A'
+        };
+      } catch (decryptError) {
+        console.warn('Error decrypting frequent user data:', user._id, decryptError.message);
+        return {
+          ...userObj,
+          name: 'Error al descifrar',
+          email: 'Error al descifrar'
+        };
+      }
+    });
+    res.json(decryptedUsers);
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener usuarios frecuentes', error: error.message });
   }

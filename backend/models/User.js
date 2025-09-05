@@ -41,7 +41,10 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre("save", function (next) {
+  console.log('🔍 Pre-save middleware running for user');
+  
   if (this.isModified("name") && typeof this.name === "string") {
+    console.log('🔍 Encrypting name:', this.name);
     const encrypted = encrypt(this.name);
     this.name = {
       iv: encrypted.iv,
@@ -49,8 +52,11 @@ userSchema.pre("save", function (next) {
       tag: encrypted.tag
     };
     this.nameHash = hashValue(encrypted.data);
+    console.log('✅ Name encrypted and nameHash generated');
   }
+  
   if (this.isModified("email") && typeof this.email === "string") {
+    console.log('🔍 Encrypting email:', this.email);
     const encrypted = encrypt(this.email);
     this.email = {
       iv: encrypted.iv,
@@ -58,7 +64,11 @@ userSchema.pre("save", function (next) {
       tag: encrypted.tag
     };
     this.emailHash = hashValue(encrypted.data);
+    console.log('✅ Email encrypted and emailHash generated');
   }
+  
+  console.log('🔍 nameHash:', this.nameHash);
+  console.log('🔍 emailHash:', this.emailHash);
   next();
 });
 

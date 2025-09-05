@@ -10,6 +10,7 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "@sendgrid/mail": "^8.1.5",
     "autoprefixer": "^10.0.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",

@@ -47,6 +47,7 @@ io.on('connection', (socket) => {
 });
 
 // ===== Rutas públicas =====
+console.log('🔍 Mounting /api/auth routes');
 app.use('/api/auth', authRouter);
 
 // ===== Rutas de negocio (las factories reciben io) =====
@@ -54,6 +55,7 @@ app.use('/api/products', productsRouterFactory(io));
 app.use('/api/orders', ordersRouterFactory(io));
 
 // ===== Usuarios (solo admin puede listar/gestionar) =====
+console.log('🔍 Mounting /api/users routes');
 app.use('/api/users', usersRouter); // 👈 aquí montamos las rutas de usuarios
 
 // ===== Pagos y validación de comprobantes =====

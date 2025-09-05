@@ -1,13 +1,14 @@
 import express from 'express';
-import {
-  registerUser,
-  loginUser,
-  getUsers,
+import { 
+  registerUser, 
+  loginUser, 
+  getUsers, 
   getLoginLogs,
-  updateUser,
-  deleteUser,
+  getFrequentUsers,
+  updateUser, 
+  deleteUser, 
   registerPurchase,
-  getFrequentUsers
+  testEncryption 
 } from '../controllers/userController.js';
 import { verifyToken, requireRole } from '../middleware/auth.js';
 
@@ -20,7 +21,11 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 
 // Registrar compra
+console.log('🔍 Registering /purchase route');
 router.post('/purchase', registerPurchase);
+
+// Test encryption endpoint
+router.get('/test-encryption', testEncryption);
 
 // Obtener usuarios frecuentes
 router.get('/frequent', verifyToken, requireRole('admin'), getFrequentUsers);
